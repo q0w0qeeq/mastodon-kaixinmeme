@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-describe SearchService do
+describe SearchService, type: :service do
   subject { described_class.new }
 
   describe '#call' do
@@ -19,15 +19,17 @@ describe SearchService do
     end
 
     describe 'with an url query' do
-      let(:query) { 'http://test.host/query' }
+      before do
+        @query = 'http://test.host/query'
+      end
 
       context 'when it does not find anything' do
         it 'returns the empty results' do
           service = instance_double(ResolveURLService, call: nil)
           allow(ResolveURLService).to receive(:new).and_return(service)
-          results = subject.call(query, nil, 10, resolve: true)
+          results = subject.call(@query, nil, 10, resolve: true)
 
-          expect(service).to have_received(:call).with(query, on_behalf_of: nil)
+          expect(service).to have_received(:call).with(@query, on_behalf_of: nil)
           expect(results).to eq empty_results
         end
       end
@@ -38,8 +40,8 @@ describe SearchService do
           service = instance_double(ResolveURLService, call: account)
           allow(ResolveURLService).to receive(:new).and_return(service)
 
-          results = subject.call(query, nil, 10, resolve: true)
-          expect(service).to have_received(:call).with(query, on_behalf_of: nil)
+          results = subject.call(@query, nil, 10, resolve: true)
+          expect(service).to have_received(:call).with(@query, on_behalf_of: nil)
           expect(results).to eq empty_results.merge(accounts: [account])
         end
       end
@@ -50,8 +52,8 @@ describe SearchService do
           service = instance_double(ResolveURLService, call: status)
           allow(ResolveURLService).to receive(:new).and_return(service)
 
-          results = subject.call(query, nil, 10, resolve: true)
-          expect(service).to have_received(:call).with(query, on_behalf_of: nil)
+          results = subject.call(@query, nil, 10, resolve: true)
+          expect(service).to have_received(:call).with(@query, on_behalf_of: nil)
           expect(results).to eq empty_results.merge(statuses: [status])
         end
       end

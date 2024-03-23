@@ -37,9 +37,7 @@ class Tag < ApplicationRecord
 
   HASHTAG_RE = %r{(?<![=/)\w])#(#{HASHTAG_NAME_PAT})}i
   HASHTAG_NAME_RE = /\A(#{HASHTAG_NAME_PAT})\z/i
-  HASHTAG_INVALID_CHARS_RE = /[^[:alnum:]\u0E47-\u0E4E#{HASHTAG_SEPARATORS}]/
-
-  RECENT_STATUS_LIMIT = 1000
+  HASHTAG_INVALID_CHARS_RE = /[^[:alnum:]#{HASHTAG_SEPARATORS}]/
 
   validates :name, presence: true, format: { with: HASHTAG_NAME_RE }
   validates :display_name, format: { with: HASHTAG_NAME_RE }
@@ -55,7 +53,7 @@ class Tag < ApplicationRecord
   scope :not_trendable, -> { where(trendable: false) }
   scope :recently_used, lambda { |account|
                           joins(:statuses)
-                            .where(statuses: { id: account.statuses.select(:id).limit(RECENT_STATUS_LIMIT) })
+                            .where(statuses: { id: account.statuses.select(:id).limit(1000) })
                             .group(:id).order(Arel.sql('count(*) desc'))
                         }
   scope :matches_name, ->(term) { where(arel_table[:name].lower.matches(arel_table.lower("#{sanitize_sql_like(Tag.normalize(term))}%"), nil, true)) } # Search with case-sensitive to use B-tree index

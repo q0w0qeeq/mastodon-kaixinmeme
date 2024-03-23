@@ -49,7 +49,6 @@ RSpec.describe 'Domain Blocks' do
           {
             id: domain_block.id.to_s,
             domain: domain_block.domain,
-            digest: domain_block.domain_digest,
             created_at: domain_block.created_at.strftime('%Y-%m-%dT%H:%M:%S.%LZ'),
             severity: domain_block.severity.to_s,
             reject_media: domain_block.reject_media,
@@ -90,15 +89,19 @@ RSpec.describe 'Domain Blocks' do
     it_behaves_like 'forbidden for wrong role', ''
     it_behaves_like 'forbidden for wrong role', 'Moderator'
 
-    it 'returns the expected domain block content', :aggregate_failures do
+    it 'returns http success' do
       subject
 
       expect(response).to have_http_status(200)
+    end
+
+    it 'returns the expected domain block content' do
+      subject
+
       expect(body_as_json).to eq(
         {
           id: domain_block.id.to_s,
           domain: domain_block.domain,
-          digest: domain_block.domain_digest,
           created_at: domain_block.created_at.strftime('%Y-%m-%dT%H:%M:%S.%LZ'),
           severity: domain_block.severity.to_s,
           reject_media: domain_block.reject_media,
@@ -130,18 +133,27 @@ RSpec.describe 'Domain Blocks' do
     it_behaves_like 'forbidden for wrong role', ''
     it_behaves_like 'forbidden for wrong role', 'Moderator'
 
-    it 'returns expected domain name and severity', :aggregate_failures do
+    it 'returns http success' do
+      subject
+
+      expect(response).to have_http_status(200)
+    end
+
+    it 'returns expected domain name and severity' do
       subject
 
       body = body_as_json
 
-      expect(response).to have_http_status(200)
       expect(body).to match a_hash_including(
         {
           domain: 'foo.bar.com',
           severity: 'silence',
         }
       )
+    end
+
+    it 'creates a domain block' do
+      subject
 
       expect(DomainBlock.find_by(domain: 'foo.bar.com')).to be_present
     end
@@ -151,10 +163,15 @@ RSpec.describe 'Domain Blocks' do
         Fabricate(:domain_block, domain: 'bar.com', severity: :suspend)
       end
 
-      it 'returns existing domain block in error', :aggregate_failures do
+      it 'returns http unprocessable entity' do
         subject
 
         expect(response).to have_http_status(422)
+      end
+
+      it 'returns existing domain block in error' do
+        subject
+
         expect(body_as_json[:existing_domain_block][:domain]).to eq('bar.com')
       end
     end
@@ -182,15 +199,19 @@ RSpec.describe 'Domain Blocks' do
     it_behaves_like 'forbidden for wrong role', ''
     it_behaves_like 'forbidden for wrong role', 'Moderator'
 
-    it 'returns the updated domain block', :aggregate_failures do
+    it 'returns http success' do
       subject
 
       expect(response).to have_http_status(200)
+    end
+
+    it 'returns the updated domain block' do
+      subject
+
       expect(body_as_json).to match a_hash_including(
         {
           id: domain_block.id.to_s,
           domain: domain_block.domain,
-          digest: domain_block.domain_digest,
           severity: 'suspend',
         }
       )
@@ -220,10 +241,15 @@ RSpec.describe 'Domain Blocks' do
     it_behaves_like 'forbidden for wrong role', ''
     it_behaves_like 'forbidden for wrong role', 'Moderator'
 
-    it 'deletes the domain block', :aggregate_failures do
+    it 'returns http success' do
       subject
 
       expect(response).to have_http_status(200)
+    end
+
+    it 'deletes the domain block' do
+      subject
+
       expect(DomainBlock.find_by(id: domain_block.id)).to be_nil
     end
 

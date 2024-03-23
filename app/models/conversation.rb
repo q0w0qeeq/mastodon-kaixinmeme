@@ -13,7 +13,7 @@
 class Conversation < ApplicationRecord
   validates :uri, uniqueness: true, if: :uri?
 
-  has_many :statuses, dependent: nil
+  has_many :statuses
 
   def local?
     uri.nil?

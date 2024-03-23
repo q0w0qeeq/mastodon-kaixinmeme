@@ -9,8 +9,10 @@ describe Settings::TwoFactorAuthentication::RecoveryCodesController do
     it 'updates the codes and shows them on a view when signed in' do
       user = Fabricate(:user)
       otp_backup_codes = user.generate_otp_backup_codes!
-      allow(user).to receive(:generate_otp_backup_codes!).and_return(otp_backup_codes)
-      allow(controller).to receive(:current_user).and_return(user)
+      expect_any_instance_of(User).to receive(:generate_otp_backup_codes!) do |value|
+        expect(value).to eq user
+        otp_backup_codes
+      end
 
       sign_in user, scope: :user
       post :create, session: { challenge_passed_at: Time.now.utc }

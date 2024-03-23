@@ -23,7 +23,7 @@ class REST::AnnouncementSerializer < ActiveModel::Serializer
   end
 
   def read
-    object.announcement_mutes.exists?(account: current_user.account)
+    object.announcement_mutes.where(account: current_user.account).exists?
   end
 
   def content

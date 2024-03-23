@@ -4,7 +4,7 @@ require 'csv'
 
 module Admin
   class ExportDomainAllowsController < BaseController
-    include Admin::ExportControllerConcern
+    include AdminExportControllerConcern
 
     before_action :set_dummy_import!, only: [:new]
 

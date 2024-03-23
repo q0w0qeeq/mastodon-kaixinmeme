@@ -62,7 +62,7 @@ class UserSettings::Setting
 
   def key
     if namespace
-      :"#{namespace}.#{name}"
+      "#{namespace}.#{name}".to_sym
     else
       name
     end

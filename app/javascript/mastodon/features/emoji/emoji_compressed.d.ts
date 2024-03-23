@@ -13,20 +13,15 @@ export type Search = string;
  * This could be a potential area of refactoring or error handling.
  * The non-existence of 'skins' property is evident at [this location]{@link app/javascript/mastodon/features/emoji/emoji_compressed.js:121}.
  */
-type Skins = null;
+export type Skins = null;
 
-type Filename = string;
-type UnicodeFilename = string;
-export type FilenameData = [
-  filename: Filename,
-  unicodeFilename?: UnicodeFilename,
-][];
+export type FilenameData = string[] | string[][];
 export type ShortCodesToEmojiDataKey =
   | EmojiData['id']
   | BaseEmoji['native']
   | keyof NimbleEmojiIndex['emojis'];
 
-type SearchData = [
+export type SearchData = [
   BaseEmoji['native'],
   Emoji['short_names'],
   Search,
@@ -37,9 +32,9 @@ export type ShortCodesToEmojiData = Record<
   ShortCodesToEmojiDataKey,
   [FilenameData, SearchData]
 >;
-type EmojisWithoutShortCodes = FilenameData;
+export type EmojisWithoutShortCodes = FilenameData[];
 
-type EmojiCompressed = [
+export type EmojiCompressed = [
   ShortCodesToEmojiData,
   Skins,
   Category[],

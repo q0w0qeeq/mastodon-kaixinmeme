@@ -1,7 +1,7 @@
-import { importAccounts } from '../accounts_typed';
+import { normalizeAccount, normalizeStatus, normalizePoll } from './normalizer';
 
-import { normalizeStatus, normalizePoll } from './normalizer';
-
+export const ACCOUNT_IMPORT  = 'ACCOUNT_IMPORT';
+export const ACCOUNTS_IMPORT = 'ACCOUNTS_IMPORT';
 export const STATUS_IMPORT   = 'STATUS_IMPORT';
 export const STATUSES_IMPORT = 'STATUSES_IMPORT';
 export const POLLS_IMPORT    = 'POLLS_IMPORT';
@@ -11,6 +11,14 @@ function pushUnique(array, object) {
   if (array.every(element => element.id !== object.id)) {
     array.push(object);
   }
+}
+
+export function importAccount(account) {
+  return { type: ACCOUNT_IMPORT, account };
+}
+
+export function importAccounts(accounts) {
+  return { type: ACCOUNTS_IMPORT, accounts };
 }
 
 export function importStatus(status) {
@@ -37,7 +45,7 @@ export function importFetchedAccounts(accounts) {
   const normalAccounts = [];
 
   function processAccount(account) {
-    pushUnique(normalAccounts, account);
+    pushUnique(normalAccounts, normalizeAccount(account));
 
     if (account.moved) {
       processAccount(account.moved);
@@ -46,7 +54,7 @@ export function importFetchedAccounts(accounts) {
 
   accounts.forEach(processAccount);
 
-  return importAccounts({ accounts: normalAccounts });
+  return importAccounts(normalAccounts);
 }
 
 export function importFetchedStatus(status) {

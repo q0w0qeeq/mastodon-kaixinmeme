@@ -25,7 +25,7 @@ class Settings::DeletesController < Settings::BaseController
   end
 
   def require_not_suspended!
-    forbidden if current_account.unavailable?
+    forbidden if current_account.suspended?
   end
 
   def challenge_passed?

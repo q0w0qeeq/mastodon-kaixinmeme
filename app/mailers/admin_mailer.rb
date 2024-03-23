@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class AdminMailer < ApplicationMailer
-  layout 'admin_mailer'
+  layout 'plain_mailer'
 
   helper :accounts
   helper :languages

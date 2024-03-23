@@ -74,13 +74,9 @@ RSpec.describe SessionActivation do
     let(:options) { { user: Fabricate(:user), session_id: '1' } }
 
     it 'calls create! and purge_old' do
-      allow(described_class).to receive(:create!).with(**options)
-      allow(described_class).to receive(:purge_old)
-
+      expect(described_class).to receive(:create!).with(**options)
+      expect(described_class).to receive(:purge_old)
       described_class.activate(**options)
-
-      expect(described_class).to have_received(:create!).with(**options)
-      expect(described_class).to have_received(:purge_old)
     end
 
     it 'returns an instance of SessionActivation' do
@@ -98,44 +94,34 @@ RSpec.describe SessionActivation do
     end
 
     context 'when id exists' do
-      let!(:session_activation) { Fabricate(:session_activation) }
+      let(:id) { '1' }
 
-      it 'destroys the record' do
-        described_class.deactivate(session_activation.session_id)
+      it 'calls where.destroy_all' do
+        expect(described_class).to receive_message_chain(:where, :destroy_all)
+          .with(session_id: id).with(no_args)
 
-        expect { session_activation.reload }.to raise_error(ActiveRecord::RecordNotFound)
+        described_class.deactivate(id)
       end
     end
   end
 
   describe '.purge_old' do
-    around do |example|
-      before = Rails.configuration.x.max_session_activations
-      Rails.configuration.x.max_session_activations = 1
-      example.run
-      Rails.configuration.x.max_session_activations = before
-    end
+    it 'calls order.offset.destroy_all' do
+      expect(described_class).to receive_message_chain(:order, :offset, :destroy_all)
+        .with('created_at desc').with(Rails.configuration.x.max_session_activations).with(no_args)
 
-    let!(:oldest_session_activation) { Fabricate(:session_activation, created_at: 10.days.ago) }
-    let!(:newest_session_activation) { Fabricate(:session_activation, created_at: 5.days.ago) }
-
-    it 'preserves the newest X records based on config' do
       described_class.purge_old
-
-      expect { oldest_session_activation.reload }.to raise_error(ActiveRecord::RecordNotFound)
-      expect { newest_session_activation.reload }.to_not raise_error
     end
   end
 
   describe '.exclusive' do
-    let!(:unwanted_session_activation) { Fabricate(:session_activation) }
-    let!(:wanted_session_activation) { Fabricate(:session_activation) }
+    let(:id) { '1' }
 
-    it 'preserves supplied record and destroys all others' do
-      described_class.exclusive(wanted_session_activation.session_id)
+    it 'calls where.destroy_all' do
+      expect(described_class).to receive_message_chain(:where, :not, :destroy_all)
+        .with(session_id: id).with(no_args)
 
-      expect { unwanted_session_activation.reload }.to raise_error(ActiveRecord::RecordNotFound)
-      expect { wanted_session_activation.reload }.to_not raise_error
+      described_class.exclusive(id)
     end
   end
 end

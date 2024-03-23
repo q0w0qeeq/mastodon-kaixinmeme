@@ -39,7 +39,7 @@ module TestEndpoints
     /api/v1/accounts/lookup?acct=alice
     /api/v1/statuses/110224538612341312
     /api/v1/statuses/110224538612341312/context
-    /api/v1/polls/123456789
+    /api/v1/polls/12345
     /api/v1/trends/statuses
     /api/v1/directory
   ).freeze
@@ -119,26 +119,24 @@ module TestEndpoints
 end
 
 describe 'Caching behavior' do
-  shared_examples 'cachable response' do |http_success: false|
-    it 'does not set cookies or set public cache control', :aggregate_failures do
+  shared_examples 'cachable response' do
+    it 'does not set cookies' do
       expect(response.cookies).to be_empty
+    end
 
+    it 'sets public cache control', :aggregate_failures do
       # expect(response.cache_control[:max_age]&.to_i).to be_positive
       expect(response.cache_control[:public]).to be_truthy
       expect(response.cache_control[:private]).to be_falsy
       expect(response.cache_control[:no_store]).to be_falsy
       expect(response.cache_control[:no_cache]).to be_falsy
-
-      expect(response).to have_http_status(200) if http_success
     end
   end
 
-  shared_examples 'non-cacheable response' do |http_success: false|
+  shared_examples 'non-cacheable response' do
     it 'sets private cache control' do
       expect(response.cache_control[:private]).to be_truthy
       expect(response.cache_control[:no_store]).to be_truthy
-
-      expect(response).to have_http_status(200) if http_success
     end
   end
 
@@ -151,7 +149,7 @@ describe 'Caching behavior' do
 
   shared_examples 'language-dependent' do
     it 'has a Vary on Accept-Language' do
-      expect(response_vary_headers).to include('accept-language')
+      expect(response.headers['Vary']&.split(',')&.map { |x| x.strip.downcase }).to include('accept-language')
     end
   end
 
@@ -166,18 +164,16 @@ describe 'Caching behavior' do
     ActionController::Base.allow_forgery_protection = old
   end
 
-  let(:alice) { Account.find_by(username: 'alice') }
-  let(:user) { User.find_by(email: 'user@host.example') }
-  let(:token) { Doorkeeper::AccessToken.find_by(resource_owner_id: user.id) }
+  let(:alice) { Fabricate(:account, username: 'alice') }
+  let(:user)  { Fabricate(:user, role: UserRole.find_by(name: 'Moderator')) }
 
-  before_all do
-    alice = Fabricate(:account, username: 'alice')
-    user = Fabricate(:user, email: 'user@host.example', role: UserRole.find_by(name: 'Moderator'))
-    status = Fabricate(:status, account: alice, id: 110_224_538_612_341_312)
-    Fabricate(:status, account: alice, id: 110_224_538_643_211_312, visibility: :private)
+  before do
+    # rubocop:disable Style/NumericLiterals
+    status = Fabricate(:status, account: alice, id: 110224538612341312)
+    Fabricate(:status, account: alice, id: 110224538643211312, visibility: :private)
     Fabricate(:invite, code: 'abcdef')
-    Fabricate(:poll, status: status, account: alice, id: 123_456_789)
-    Fabricate(:accessible_access_token, resource_owner_id: user.id, scopes: 'read')
+    Fabricate(:poll, status: status, account: alice, id: 12345)
+    # rubocop:enable Style/NumericLiterals
 
     user.account.follow!(alice)
   end
@@ -188,7 +184,7 @@ describe 'Caching behavior' do
         get '/users/alice'
 
         expect(response).to redirect_to('/@alice')
-        expect(response_vary_headers).to include('accept')
+        expect(response.headers['Vary']&.split(',')&.map { |x| x.strip.downcase }).to include('accept')
       end
     end
 
@@ -208,7 +204,7 @@ describe 'Caching behavior' do
         it_behaves_like 'cachable response'
 
         it 'has a Vary on Cookie' do
-          expect(response_vary_headers).to include('cookie')
+          expect(response.headers['Vary']&.split(',')&.map { |x| x.strip.downcase }).to include('cookie')
         end
 
         it_behaves_like 'language-dependent' if TestEndpoints::LANGUAGE_DEPENDENT.include?(endpoint)
@@ -222,7 +218,7 @@ describe 'Caching behavior' do
         it_behaves_like 'cachable response'
 
         it 'has a Vary on Authorization' do
-          expect(response_vary_headers).to include('authorization')
+          expect(response.headers['Vary']&.split(',')&.map { |x| x.strip.downcase }).to include('authorization')
         end
 
         it_behaves_like 'language-dependent' if TestEndpoints::LANGUAGE_DEPENDENT.include?(endpoint)
@@ -246,10 +242,16 @@ describe 'Caching behavior' do
     end
 
     describe '/api/v1/instance/domain_blocks' do
-      before do
+      around do |example|
+        old_setting = Setting.show_domain_blocks
         Setting.show_domain_blocks = show_domain_blocks
-        get '/api/v1/instance/domain_blocks'
+
+        example.run
+
+        Setting.show_domain_blocks = old_setting
       end
+
+      before { get '/api/v1/instance/domain_blocks' }
 
       context 'when set to be publicly-available' do
         let(:show_domain_blocks) { 'all' }
@@ -302,7 +304,7 @@ describe 'Caching behavior' do
         it_behaves_like 'non-cacheable response'
 
         it 'has a Vary on Cookie' do
-          expect(response_vary_headers).to include('cookie')
+          expect(response.headers['Vary']&.split(',')&.map { |x| x.strip.downcase }).to include('cookie')
         end
       end
     end
@@ -311,7 +313,11 @@ describe 'Caching behavior' do
       describe endpoint do
         before { get endpoint }
 
-        it_behaves_like 'non-cacheable response', http_success: true
+        it_behaves_like 'non-cacheable response'
+
+        it 'returns HTTP success' do
+          expect(response).to have_http_status(200)
+        end
       end
     end
 
@@ -325,6 +331,8 @@ describe 'Caching behavior' do
   end
 
   context 'with an auth token' do
+    let!(:token) { Fabricate(:accessible_access_token, resource_owner_id: user.id, scopes: 'read') }
+
     TestEndpoints::ALWAYS_CACHED.each do |endpoint|
       describe endpoint do
         before do
@@ -345,7 +353,7 @@ describe 'Caching behavior' do
         it_behaves_like 'non-cacheable response'
 
         it 'has a Vary on Authorization' do
-          expect(response_vary_headers).to include('authorization')
+          expect(response.headers['Vary']&.split(',')&.map { |x| x.strip.downcase }).to include('authorization')
         end
       end
     end
@@ -356,13 +364,25 @@ describe 'Caching behavior' do
           get endpoint, headers: { 'Authorization' => "Bearer #{token.token}" }
         end
 
-        it_behaves_like 'non-cacheable response', http_success: true
+        it_behaves_like 'non-cacheable response'
+
+        it 'returns HTTP success' do
+          expect(response).to have_http_status(200)
+        end
       end
     end
 
     describe '/api/v1/instance/domain_blocks' do
-      before do
+      around do |example|
+        old_setting = Setting.show_domain_blocks
         Setting.show_domain_blocks = show_domain_blocks
+
+        example.run
+
+        Setting.show_domain_blocks = old_setting
+      end
+
+      before do
         get '/api/v1/instance/domain_blocks', headers: { 'Authorization' => "Bearer #{token.token}" }
       end
 
@@ -375,7 +395,11 @@ describe 'Caching behavior' do
       context 'when allowed for local users only' do
         let(:show_domain_blocks) { 'users' }
 
-        it_behaves_like 'non-cacheable response', http_success: true
+        it_behaves_like 'non-cacheable response'
+
+        it 'returns HTTP success' do
+          expect(response).to have_http_status(200)
+        end
       end
 
       context 'when disabled' do
@@ -399,7 +423,11 @@ describe 'Caching behavior' do
         get '/actor', sign_with: remote_actor, headers: { 'Accept' => 'application/activity+json' }
       end
 
-      it_behaves_like 'cachable response', http_success: true
+      it_behaves_like 'cachable response'
+
+      it 'returns HTTP success' do
+        expect(response).to have_http_status(200)
+      end
     end
 
     TestEndpoints::REQUIRE_SIGNATURE.each do |endpoint|
@@ -408,7 +436,11 @@ describe 'Caching behavior' do
           get endpoint, sign_with: remote_actor, headers: { 'Accept' => 'application/activity+json' }
         end
 
-        it_behaves_like 'non-cacheable response', http_success: true
+        it_behaves_like 'non-cacheable response'
+
+        it 'returns HTTP success' do
+          expect(response).to have_http_status(200)
+        end
       end
     end
   end
@@ -426,7 +458,11 @@ describe 'Caching behavior' do
           get '/actor', headers: { 'Accept' => 'application/activity+json' }
         end
 
-        it_behaves_like 'cachable response', http_success: true
+        it_behaves_like 'cachable response'
+
+        it 'returns HTTP success' do
+          expect(response).to have_http_status(200)
+        end
       end
 
       (TestEndpoints::REQUIRE_SIGNATURE + TestEndpoints::AuthorizedFetch::REQUIRE_SIGNATURE).each do |endpoint|
@@ -453,7 +489,11 @@ describe 'Caching behavior' do
           get '/actor', sign_with: remote_actor, headers: { 'Accept' => 'application/activity+json' }
         end
 
-        it_behaves_like 'cachable response', http_success: true
+        it_behaves_like 'cachable response'
+
+        it 'returns HTTP success' do
+          expect(response).to have_http_status(200)
+        end
       end
 
       (TestEndpoints::REQUIRE_SIGNATURE + TestEndpoints::AuthorizedFetch::REQUIRE_SIGNATURE).each do |endpoint|
@@ -462,7 +502,11 @@ describe 'Caching behavior' do
             get endpoint, sign_with: remote_actor, headers: { 'Accept' => 'application/activity+json' }
           end
 
-          it_behaves_like 'non-cacheable response', http_success: true
+          it_behaves_like 'non-cacheable response'
+
+          it 'returns HTTP success' do
+            expect(response).to have_http_status(200)
+          end
         end
       end
     end
@@ -486,7 +530,11 @@ describe 'Caching behavior' do
           get '/actor', headers: { 'Accept' => 'application/activity+json' }
         end
 
-        it_behaves_like 'cachable response', http_success: true
+        it_behaves_like 'cachable response'
+
+        it 'returns HTTP success' do
+          expect(response).to have_http_status(200)
+        end
       end
 
       (TestEndpoints::REQUIRE_SIGNATURE + TestEndpoints::AuthorizedFetch::REQUIRE_SIGNATURE).each do |endpoint|
@@ -514,7 +562,11 @@ describe 'Caching behavior' do
           get '/actor', sign_with: remote_actor, headers: { 'Accept' => 'application/activity+json' }
         end
 
-        it_behaves_like 'cachable response', http_success: true
+        it_behaves_like 'cachable response'
+
+        it 'returns HTTP success' do
+          expect(response).to have_http_status(200)
+        end
       end
 
       (TestEndpoints::REQUIRE_SIGNATURE + TestEndpoints::AuthorizedFetch::REQUIRE_SIGNATURE).each do |endpoint|
@@ -523,7 +575,11 @@ describe 'Caching behavior' do
             get endpoint, sign_with: remote_actor, headers: { 'Accept' => 'application/activity+json' }
           end
 
-          it_behaves_like 'non-cacheable response', http_success: true
+          it_behaves_like 'non-cacheable response'
+
+          it 'returns HTTP success' do
+            expect(response).to have_http_status(200)
+          end
         end
       end
     end
@@ -537,7 +593,11 @@ describe 'Caching behavior' do
           get '/actor', sign_with: remote_actor, headers: { 'Accept' => 'application/activity+json' }
         end
 
-        it_behaves_like 'cachable response', http_success: true
+        it_behaves_like 'cachable response'
+
+        it 'returns HTTP success' do
+          expect(response).to have_http_status(200)
+        end
       end
 
       (TestEndpoints::REQUIRE_SIGNATURE + TestEndpoints::AuthorizedFetch::REQUIRE_SIGNATURE).each do |endpoint|
@@ -587,6 +647,8 @@ describe 'Caching behavior' do
     end
 
     context 'with an auth token' do
+      let!(:token) { Fabricate(:accessible_access_token, resource_owner_id: user.id, scopes: 'read') }
+
       TestEndpoints::ALWAYS_CACHED.each do |endpoint|
         describe endpoint do
           before do
@@ -607,7 +669,7 @@ describe 'Caching behavior' do
           it_behaves_like 'non-cacheable response'
 
           it 'has a Vary on Authorization' do
-            expect(response_vary_headers).to include('authorization')
+            expect(response.headers['Vary']&.split(',')&.map { |x| x.strip.downcase }).to include('authorization')
           end
         end
       end
@@ -618,15 +680,13 @@ describe 'Caching behavior' do
             get endpoint, headers: { 'Authorization' => "Bearer #{token.token}" }
           end
 
-          it_behaves_like 'non-cacheable response', http_success: true
+          it_behaves_like 'non-cacheable response'
+
+          it 'returns HTTP success' do
+            expect(response).to have_http_status(200)
+          end
         end
       end
     end
-  end
-
-  private
-
-  def response_vary_headers
-    response.headers['Vary']&.split(',')&.map { |x| x.strip.downcase }
   end
 end

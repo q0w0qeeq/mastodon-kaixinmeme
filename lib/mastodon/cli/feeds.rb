@@ -27,13 +27,17 @@ module Mastodon::CLI
       elsif username.present?
         account = Account.find_local(username)
 
-        fail_with_message 'No such account' if account.nil?
+        if account.nil?
+          say('No such account', :red)
+          exit(1)
+        end
 
         PrecomputeFeedService.new.call(account) unless dry_run?
 
         say("OK #{dry_run_mode_suffix}", :green, true)
       else
-        fail_with_message 'No account(s) given'
+        say('No account(s) given', :red)
+        exit(1)
       end
     end
 

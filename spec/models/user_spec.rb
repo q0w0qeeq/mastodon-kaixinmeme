@@ -38,66 +38,40 @@ RSpec.describe User do
       user.save(validate: false)
       expect(user.valid?).to be true
     end
-  end
 
-  describe 'Normalizations' do
-    describe 'locale' do
-      it 'preserves valid locale' do
-        user = Fabricate.build(:user, locale: 'en')
-
-        expect(user.locale).to eq('en')
-      end
-
-      it 'cleans out invalid locale' do
-        user = Fabricate.build(:user, locale: 'toto')
-
-        expect(user.locale).to be_nil
-      end
+    it 'cleans out invalid locale' do
+      user = Fabricate.build(:user, locale: 'toto')
+      expect(user.valid?).to be true
+      expect(user.locale).to be_nil
     end
 
-    describe 'time_zone' do
-      it 'preserves valid timezone' do
-        user = Fabricate.build(:user, time_zone: 'UTC')
-
-        expect(user.time_zone).to eq('UTC')
-      end
-
-      it 'cleans out invalid timezone' do
-        user = Fabricate.build(:user, time_zone: 'toto')
-
-        expect(user.time_zone).to be_nil
-      end
+    it 'cleans out invalid timezone' do
+      user = Fabricate.build(:user, time_zone: 'toto')
+      expect(user.valid?).to be true
+      expect(user.time_zone).to be_nil
     end
 
-    describe 'languages' do
-      it 'preserves valid options for languages' do
-        user = Fabricate.build(:user, chosen_languages: ['en', 'fr', ''])
-
-        expect(user.chosen_languages).to eq(['en', 'fr'])
-      end
-
-      it 'cleans out empty string from languages' do
-        user = Fabricate.build(:user, chosen_languages: [''])
-
-        expect(user.chosen_languages).to be_nil
-      end
+    it 'cleans out empty string from languages' do
+      user = Fabricate.build(:user, chosen_languages: [''])
+      user.valid?
+      expect(user.chosen_languages).to be_nil
     end
   end
 
-  describe 'scopes', :sidekiq_inline do
+  describe 'scopes' do
     describe 'recent' do
       it 'returns an array of recent users ordered by id' do
-        first_user = Fabricate(:user)
-        second_user = Fabricate(:user)
-        expect(described_class.recent).to eq [second_user, first_user]
+        user_1 = Fabricate(:user)
+        user_2 = Fabricate(:user)
+        expect(described_class.recent).to eq [user_2, user_1]
       end
     end
 
     describe 'confirmed' do
       it 'returns an array of users who are confirmed' do
-        Fabricate(:user, confirmed_at: nil)
-        confirmed_user = Fabricate(:user, confirmed_at: Time.zone.now)
-        expect(described_class.confirmed).to contain_exactly(confirmed_user)
+        user_1 = Fabricate(:user, confirmed_at: nil)
+        user_2 = Fabricate(:user, confirmed_at: Time.zone.now)
+        expect(described_class.confirmed).to contain_exactly(user_2)
       end
     end
 
@@ -134,7 +108,7 @@ RSpec.describe User do
   end
 
   describe 'blacklist' do
-    around do |example|
+    around(:each) do |example|
       old_blacklist = Rails.configuration.x.email_blacklist
 
       Rails.configuration.x.email_domains_blacklist = 'mvrht.com'
@@ -187,9 +161,12 @@ RSpec.describe User do
     context 'when the user is already confirmed' do
       let!(:user) { Fabricate(:user, confirmed_at: Time.now.utc, approved: true, unconfirmed_email: new_email) }
 
-      it 'sets email to unconfirmed_email and does not trigger web hook' do
+      it 'sets email to unconfirmed_email' do
         expect { subject }.to change { user.reload.email }.to(new_email)
+      end
 
+      it 'does not trigger the account.approved Web Hook' do
+        subject
         expect(TriggerWebhookWorker).to_not have_received(:perform_async).with('account.approved', 'Account', user.account_id)
       end
     end
@@ -198,38 +175,65 @@ RSpec.describe User do
       let(:user) { Fabricate(:user, confirmed_at: nil, unconfirmed_email: new_email) }
 
       context 'when the user is already approved' do
-        before do
+        around(:example) do |example|
+          registrations_mode = Setting.registrations_mode
           Setting.registrations_mode = 'approved'
+
+          example.run
+
+          Setting.registrations_mode = registrations_mode
+        end
+
+        before do
           user.approve!
         end
 
-        it 'sets email to unconfirmed_email and triggers `account.approved` web hook' do
+        it 'sets email to unconfirmed_email' do
           expect { subject }.to change { user.reload.email }.to(new_email)
+        end
 
+        it 'triggers the account.approved Web Hook' do
+          user.confirm
           expect(TriggerWebhookWorker).to have_received(:perform_async).with('account.approved', 'Account', user.account_id).once
         end
       end
 
       context 'when the user does not require explicit approval' do
-        before do
+        around(:example) do |example|
+          registrations_mode = Setting.registrations_mode
           Setting.registrations_mode = 'open'
+
+          example.run
+
+          Setting.registrations_mode = registrations_mode
         end
 
-        it 'sets email to unconfirmed_email and triggers `account.approved` web hook' do
+        it 'sets email to unconfirmed_email' do
           expect { subject }.to change { user.reload.email }.to(new_email)
+        end
 
+        it 'triggers the account.approved Web Hook' do
+          user.confirm
           expect(TriggerWebhookWorker).to have_received(:perform_async).with('account.approved', 'Account', user.account_id).once
         end
       end
 
       context 'when the user requires explicit approval but is not approved' do
-        before do
+        around(:example) do |example|
+          registrations_mode = Setting.registrations_mode
           Setting.registrations_mode = 'approved'
+
+          example.run
+
+          Setting.registrations_mode = registrations_mode
         end
 
-        it 'sets email to unconfirmed_email and does not trigger web hook' do
+        it 'sets email to unconfirmed_email' do
           expect { subject }.to change { user.reload.email }.to(new_email)
+        end
 
+        it 'does not trigger the account.approved Web Hook' do
+          subject
           expect(TriggerWebhookWorker).to_not have_received(:perform_async).with('account.approved', 'Account', user.account_id)
         end
       end
@@ -239,17 +243,28 @@ RSpec.describe User do
   describe '#approve!' do
     subject { user.approve! }
 
-    before do
+    around(:example) do |example|
+      registrations_mode = Setting.registrations_mode
       Setting.registrations_mode = 'approved'
+
+      example.run
+
+      Setting.registrations_mode = registrations_mode
+    end
+
+    before do
       allow(TriggerWebhookWorker).to receive(:perform_async)
     end
 
     context 'when the user is already confirmed' do
       let(:user) { Fabricate(:user, confirmed_at: Time.now.utc, approved: false) }
 
-      it 'sets the approved flag and triggers `account.approved` web hook' do
+      it 'sets the approved flag' do
         expect { subject }.to change { user.reload.approved? }.to(true)
+      end
 
+      it 'triggers the account.approved Web Hook' do
+        subject
         expect(TriggerWebhookWorker).to have_received(:perform_async).with('account.approved', 'Account', user.account_id).once
       end
     end
@@ -257,9 +272,12 @@ RSpec.describe User do
     context 'when the user is not confirmed' do
       let(:user) { Fabricate(:user, confirmed_at: nil, approved: false) }
 
-      it 'sets the approved flag and does not trigger web hook' do
+      it 'sets the approved flag' do
         expect { subject }.to change { user.reload.approved? }.to(true)
+      end
 
+      it 'does not trigger the account.approved Web Hook' do
+        subject
         expect(TriggerWebhookWorker).to_not have_received(:perform_async).with('account.approved', 'Account', user.account_id)
       end
     end
@@ -326,7 +344,7 @@ RSpec.describe User do
   end
 
   describe 'whitelist' do
-    around do |example|
+    around(:each) do |example|
       old_whitelist = Rails.configuration.x.email_domains_whitelist
 
       Rails.configuration.x.email_domains_whitelist = 'mastodon.space'
@@ -433,7 +451,6 @@ RSpec.describe User do
 
     it 'deactivates all sessions' do
       expect(user.session_activations.count).to eq 0
-      expect { session_activation.reload }.to raise_error(ActiveRecord::RecordNotFound)
     end
 
     it 'revokes all access tokens' do
@@ -446,40 +463,40 @@ RSpec.describe User do
 
     it 'removes push subscriptions' do
       expect(Web::PushSubscription.where(user: user).or(Web::PushSubscription.where(access_token: access_token)).count).to eq 0
-      expect { web_push_subscription.reload }.to raise_error(ActiveRecord::RecordNotFound)
     end
   end
 
-  describe '#mark_email_as_confirmed!' do
-    subject { user.mark_email_as_confirmed! }
+  describe '#confirm!' do
+    subject(:user) { Fabricate(:user, confirmed_at: confirmed_at) }
 
-    let!(:user) { Fabricate(:user, confirmed_at: confirmed_at) }
+    before do
+      ActionMailer::Base.deliveries.clear
+      user.confirm!
+    end
+
+    after { ActionMailer::Base.deliveries.clear }
 
     context 'when user is new' do
       let(:confirmed_at) { nil }
 
-      it 'confirms user and delivers welcome email', :sidekiq_inline do
-        emails = capture_emails { subject }
-
+      it 'confirms user' do
         expect(user.confirmed_at).to be_present
-        expect(emails.size)
-          .to eq(1)
-        expect(emails.first)
-          .to have_attributes(
-            to: contain_exactly(user.email),
-            subject: eq(I18n.t('user_mailer.welcome.subject'))
-          )
+      end
+
+      it 'delivers mails' do
+        expect(ActionMailer::Base.deliveries.count).to eq 2
       end
     end
 
     context 'when user is not new' do
       let(:confirmed_at) { Time.zone.now }
 
-      it 'confirms user but does not deliver welcome email' do
-        emails = capture_emails { subject }
-
+      it 'confirms user' do
         expect(user.confirmed_at).to be_present
-        expect(emails).to be_empty
+      end
+
+      it 'does not deliver mail' do
+        expect(ActionMailer::Base.deliveries.count).to eq 0
       end
     end
   end

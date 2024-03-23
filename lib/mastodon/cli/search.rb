@@ -42,13 +42,7 @@ module Mastodon::CLI
 
       pool      = Concurrent::FixedThreadPool.new(options[:concurrency], max_queue: options[:concurrency] * 10)
       importers = indices.index_with { |index| "Importer::#{index.name}Importer".constantize.new(batch_size: options[:batch_size], executor: pool) }
-      progress  = ProgressBar.create(
-        {
-          total: nil,
-          format: '%t%c/%u |%b%i| %e (%r docs/s)',
-          autofinish: false,
-        }.merge(progress_output_options)
-      )
+      progress  = ProgressBar.create(total: nil, format: '%t%c/%u |%b%i| %e (%r docs/s)', autofinish: false)
 
       Chewy::Stash::Specification.reset! if options[:reset_chewy]
 
@@ -100,14 +94,6 @@ module Mastodon::CLI
       progress.finish
 
       say("Indexed #{added} records, de-indexed #{removed}", :green, true)
-    rescue Elasticsearch::Transport::Transport::ServerError => e
-      fail_with_message <<~ERROR
-        There was an issue connecting to the search server. Make sure the
-        server is configured and running correctly, and that the environment
-        variable settings match what the server is expecting.
-
-        #{e.message}
-      ERROR
     end
 
     private
@@ -118,15 +104,17 @@ module Mastodon::CLI
     end
 
     def verify_deploy_concurrency!
-      fail_with_message 'Cannot run with this concurrency setting, must be at least 1' if options[:concurrency] < 1
+      return unless options[:concurrency] < 1
+
+      say('Cannot run with this concurrency setting, must be at least 1', :red)
+      exit(1)
     end
 
     def verify_deploy_batch_size!
-      fail_with_message 'Cannot run with this batch_size setting, must be at least 1' if options[:batch_size] < 1
-    end
+      return unless options[:batch_size] < 1
 
-    def progress_output_options
-      Rails.env.test? ? { output: ProgressBar::Outputs::Null } : {}
+      say('Cannot run with this batch_size setting, must be at least 1', :red)
+      exit(1)
     end
   end
 end

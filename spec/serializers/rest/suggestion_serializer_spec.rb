@@ -3,11 +3,17 @@
 require 'rails_helper'
 
 describe REST::SuggestionSerializer do
-  let(:serialization) { serialized_record_json(record, described_class) }
+  let(:serialization) do
+    JSON.parse(
+      ActiveModelSerializers::SerializableResource.new(
+        record, serializer: described_class
+      ).to_json
+    )
+  end
   let(:record) do
     AccountSuggestions::Suggestion.new(
       account: account,
-      sources: ['SuggestionSource']
+      source: 'SuggestionSource'
     )
   end
   let(:account) { Fabricate(:account) }

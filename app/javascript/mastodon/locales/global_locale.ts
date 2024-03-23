@@ -1,5 +1,3 @@
-import { isDevelopment } from 'mastodon/utils/environment';
-
 export interface LocaleData {
   locale: string;
   messages: Record<string, string>;
@@ -13,7 +11,7 @@ export function setLocale(locale: LocaleData) {
 
 export function getLocale(): LocaleData {
   if (!loadedLocale) {
-    if (isDevelopment()) {
+    if (process.env.NODE_ENV === 'development') {
       throw new Error('getLocale() called before any locale has been set');
     } else {
       return { locale: 'unknown', messages: {} };

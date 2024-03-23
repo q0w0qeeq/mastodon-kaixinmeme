@@ -35,12 +35,18 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v4
 
-      - name: Set up Javascript environment
-        uses: ./.github/actions/setup-javascript
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          cache: yarn
+          node-version-file: '.nvmrc'
+
+      - name: Install all yarn packages
+        run: yarn --frozen-lockfile
 
       - uses: xt0rted/stylelint-problem-matcher@v1
 
       - run: echo "::add-matcher::.github/stylelint-matcher.json"
 
       - name: Stylelint
-        run: yarn lint:css
+        run: yarn lint:sass

@@ -1,84 +1,44 @@
 import type { PropsWithChildren } from 'react';
 import React from 'react';
 
-import { Router as OriginalRouter, useHistory } from 'react-router';
-
-import type {
-  LocationDescriptor,
-  LocationDescriptorObject,
-  Path,
-} from 'history';
 import { createBrowserHistory } from 'history';
+import { Router as OriginalRouter } from 'react-router';
 
 import { layoutFromWindow } from 'mastodon/is_mobile';
-import { isDevelopment } from 'mastodon/utils/environment';
 
 interface MastodonLocationState {
   fromMastodon?: boolean;
   mastodonModalKey?: string;
 }
 
-type LocationState = MastodonLocationState | null | undefined;
-
-type HistoryPath = Path | LocationDescriptor<LocationState>;
-
-const browserHistory = createBrowserHistory<LocationState>();
+const browserHistory = createBrowserHistory<
+  MastodonLocationState | undefined
+>();
 const originalPush = browserHistory.push.bind(browserHistory);
 const originalReplace = browserHistory.replace.bind(browserHistory);
 
-export function useAppHistory() {
-  return useHistory<LocationState>();
-}
+browserHistory.push = (path: string, state?: MastodonLocationState) => {
+  state = state ?? {};
+  state.fromMastodon = true;
 
-function normalizePath(
-  path: HistoryPath,
-  state?: LocationState,
-): LocationDescriptorObject<LocationState> {
-  const location = typeof path === 'string' ? { pathname: path } : { ...path };
-
-  if (location.state === undefined && state !== undefined) {
-    location.state = state;
-  } else if (
-    location.state !== undefined &&
-    state !== undefined &&
-    isDevelopment()
-  ) {
-    // eslint-disable-next-line no-console
-    console.log(
-      'You should avoid providing a 2nd state argument to push when the 1st argument is a location-like object that already has state; it is ignored',
-    );
+  if (layoutFromWindow() === 'multi-column' && !path.startsWith('/deck')) {
+    originalPush(`/deck${path}`, state);
+  } else {
+    originalPush(path, state);
   }
-
-  if (
-    layoutFromWindow() === 'multi-column' &&
-    !location.pathname?.startsWith('/deck')
-  ) {
-    location.pathname = `/deck${location.pathname}`;
-  }
-
-  return location;
-}
-
-browserHistory.push = (path: HistoryPath, state?: MastodonLocationState) => {
-  const location = normalizePath(path, state);
-
-  location.state = location.state ?? {};
-  location.state.fromMastodon = true;
-
-  originalPush(location);
 };
 
-browserHistory.replace = (path: HistoryPath, state?: MastodonLocationState) => {
-  const location = normalizePath(path, state);
-
-  if (!location.pathname) return;
-
+browserHistory.replace = (path: string, state?: MastodonLocationState) => {
   if (browserHistory.location.state?.fromMastodon) {
-    location.state = location.state ?? {};
-    location.state.fromMastodon = true;
+    state = state ?? {};
+    state.fromMastodon = true;
   }
 
-  originalReplace(location);
+  if (layoutFromWindow() === 'multi-column' && !path.startsWith('/deck')) {
+    originalReplace(`/deck${path}`, state);
+  } else {
+    originalReplace(path, state);
+  }
 };
 
 export const Router: React.FC<PropsWithChildren> = ({ children }) => {

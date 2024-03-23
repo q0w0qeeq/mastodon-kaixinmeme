@@ -2,14 +2,12 @@ import { useEffect, useState } from 'react';
 
 import { IntlProvider as BaseIntlProvider } from 'react-intl';
 
-import { isProduction } from 'mastodon/utils/environment';
-
 import { getLocale, isLocaleLoaded } from './global_locale';
 import { loadLocale } from './load_locale';
 
 function onProviderError(error: unknown) {
   // Silent the error, like upstream does
-  if (isProduction()) return;
+  if (process.env.NODE_ENV === 'production') return;
 
   // This browser does not advertise Intl support for this locale, we only print a warning
   // As-per the spec, the browser should select the best matching locale

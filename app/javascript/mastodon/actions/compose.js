@@ -786,12 +786,11 @@ export function addPollOption(title) {
   };
 }
 
-export function changePollOption(index, title, maxOptions) {
+export function changePollOption(index, title) {
   return {
     type: COMPOSE_POLL_OPTION_CHANGE,
     index,
     title,
-    maxOptions,
   };
 }
 

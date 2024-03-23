@@ -10,7 +10,6 @@ import { connect } from 'react-redux';
 
 import { debounce } from 'lodash';
 
-import RefreshIcon from '@/material-icons/400-24px/refresh.svg?react';
 import { fetchFavourites, expandFavourites } from 'mastodon/actions/interactions';
 import ColumnHeader from 'mastodon/components/column_header';
 import { Icon }  from 'mastodon/components/icon';
@@ -74,7 +73,7 @@ class Favourites extends ImmutablePureComponent {
           showBackButton
           multiColumn={multiColumn}
           extraButton={(
-            <button type='button' className='column-header__button' title={intl.formatMessage(messages.refresh)} aria-label={intl.formatMessage(messages.refresh)} onClick={this.handleRefresh}><Icon id='refresh' icon={RefreshIcon} /></button>
+            <button type='button' className='column-header__button' title={intl.formatMessage(messages.refresh)} aria-label={intl.formatMessage(messages.refresh)} onClick={this.handleRefresh}><Icon id='refresh' /></button>
           )}
         />
 

@@ -38,9 +38,6 @@ class UserRole < ApplicationRecord
     delete_user_data: (1 << 19),
   }.freeze
 
-  EVERYONE_ROLE_ID = -99
-  NOBODY_POSITION = -1
-
   module Flags
     NONE = 0
     ALL  = FLAGS.values.reduce(&:|)
@@ -52,7 +49,7 @@ class UserRole < ApplicationRecord
         invite_users
       ).freeze,
 
-      moderation: %i(
+      moderation: %w(
         view_dashboard
         view_audit_log
         manage_users
@@ -66,7 +63,7 @@ class UserRole < ApplicationRecord
         manage_invites
       ).freeze,
 
-      administration: %i(
+      administration: %w(
         manage_settings
         manage_rules
         manage_roles
@@ -75,7 +72,7 @@ class UserRole < ApplicationRecord
         manage_announcements
       ).freeze,
 
-      devops: %i(
+      devops: %w(
         view_devops
       ).freeze,
 
@@ -97,21 +94,18 @@ class UserRole < ApplicationRecord
 
   before_validation :set_position
 
-  scope :assignable, -> { where.not(id: EVERYONE_ROLE_ID).order(position: :asc) }
-  scope :highlighted, -> { where(highlighted: true) }
-  scope :with_color, -> { where.not(color: [nil, '']) }
-  scope :providing_styles, -> { highlighted.with_color }
+  scope :assignable, -> { where.not(id: -99).order(position: :asc) }
 
   has_many :users, inverse_of: :role, foreign_key: 'role_id', dependent: :nullify
 
   def self.nobody
-    @nobody ||= UserRole.new(permissions: Flags::NONE, position: NOBODY_POSITION)
+    @nobody ||= UserRole.new(permissions: Flags::NONE, position: -1)
   end
 
   def self.everyone
-    UserRole.find(EVERYONE_ROLE_ID)
+    UserRole.find(-99)
   rescue ActiveRecord::RecordNotFound
-    UserRole.create!(id: EVERYONE_ROLE_ID, permissions: Flags::DEFAULT)
+    UserRole.create!(id: -99, permissions: Flags::DEFAULT)
   end
 
   def self.that_can(*any_of_privileges)
@@ -119,7 +113,7 @@ class UserRole < ApplicationRecord
   end
 
   def everyone?
-    id == EVERYONE_ROLE_ID
+    id == -99
   end
 
   def nobody?
@@ -174,7 +168,7 @@ class UserRole < ApplicationRecord
   end
 
   def set_position
-    self.position = NOBODY_POSITION if everyone?
+    self.position = -1 if everyone?
   end
 
   def validate_own_role_edition

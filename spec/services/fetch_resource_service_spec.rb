@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe FetchResourceService do
+RSpec.describe FetchResourceService, type: :service do
   describe '#call' do
     subject { described_class.new.call(url) }
 

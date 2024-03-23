@@ -1,15 +1,19 @@
 # frozen_string_literal: true
 
+require Rails.root.join('lib', 'mastodon', 'migration_helpers')
+
 class AddSilentToMentions < ActiveRecord::Migration[5.2]
+  include Mastodon::MigrationHelpers
+
   disable_ddl_transaction!
 
   def up
     safety_assured do
-      add_column(
+      add_column_with_default(
         :mentions,
         :silent,
         :boolean,
-        null: false,
+        allow_null: false,
         default: false
       )
     end

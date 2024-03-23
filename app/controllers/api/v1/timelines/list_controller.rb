@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-class Api::V1::Timelines::ListController < Api::V1::Timelines::BaseController
+class Api::V1::Timelines::ListController < Api::BaseController
   before_action -> { doorkeeper_authorize! :read, :'read:lists' }
   before_action :require_user!
   before_action :set_list
   before_action :set_statuses
 
-  PERMITTED_PARAMS = %i(limit).freeze
+  after_action :insert_pagination_headers, unless: -> { @statuses.empty? }
 
   def show
     render json: @statuses,
@@ -41,11 +41,27 @@ class Api::V1::Timelines::ListController < Api::V1::Timelines::BaseController
     ListFeed.new(@list)
   end
 
+  def insert_pagination_headers
+    set_pagination_headers(next_path, prev_path)
+  end
+
+  def pagination_params(core_params)
+    params.slice(:limit).permit(:limit).merge(core_params)
+  end
+
   def next_path
-    api_v1_timelines_list_url params[:id], next_path_params
+    api_v1_timelines_list_url params[:id], pagination_params(max_id: pagination_max_id)
   end
 
   def prev_path
-    api_v1_timelines_list_url params[:id], prev_path_params
+    api_v1_timelines_list_url params[:id], pagination_params(min_id: pagination_since_id)
+  end
+
+  def pagination_max_id
+    @statuses.last.id
+  end
+
+  def pagination_since_id
+    @statuses.first.id
   end
 end

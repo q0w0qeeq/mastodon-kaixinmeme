@@ -34,7 +34,7 @@ class Form::CustomEmojiBatch
   end
 
   def update!
-    verify_authorization(:update?)
+    custom_emojis.each { |custom_emoji| authorize(custom_emoji, :update?) }
 
     category = if category_id.present?
                  CustomEmojiCategory.find(category_id)
@@ -49,7 +49,7 @@ class Form::CustomEmojiBatch
   end
 
   def list!
-    verify_authorization(:update?)
+    custom_emojis.each { |custom_emoji| authorize(custom_emoji, :update?) }
 
     custom_emojis.each do |custom_emoji|
       custom_emoji.update(visible_in_picker: true)
@@ -58,7 +58,7 @@ class Form::CustomEmojiBatch
   end
 
   def unlist!
-    verify_authorization(:update?)
+    custom_emojis.each { |custom_emoji| authorize(custom_emoji, :update?) }
 
     custom_emojis.each do |custom_emoji|
       custom_emoji.update(visible_in_picker: false)
@@ -67,7 +67,7 @@ class Form::CustomEmojiBatch
   end
 
   def enable!
-    verify_authorization(:enable?)
+    custom_emojis.each { |custom_emoji| authorize(custom_emoji, :enable?) }
 
     custom_emojis.each do |custom_emoji|
       custom_emoji.update(disabled: false)
@@ -76,7 +76,7 @@ class Form::CustomEmojiBatch
   end
 
   def disable!
-    verify_authorization(:disable?)
+    custom_emojis.each { |custom_emoji| authorize(custom_emoji, :disable?) }
 
     custom_emojis.each do |custom_emoji|
       custom_emoji.update(disabled: true)
@@ -85,7 +85,7 @@ class Form::CustomEmojiBatch
   end
 
   def copy!
-    verify_authorization(:copy?)
+    custom_emojis.each { |custom_emoji| authorize(custom_emoji, :copy?) }
 
     custom_emojis.each do |custom_emoji|
       copied_custom_emoji = custom_emoji.copy!
@@ -94,15 +94,11 @@ class Form::CustomEmojiBatch
   end
 
   def delete!
-    verify_authorization(:destroy?)
+    custom_emojis.each { |custom_emoji| authorize(custom_emoji, :destroy?) }
 
     custom_emojis.each do |custom_emoji|
       custom_emoji.destroy
       log_action :destroy, custom_emoji
     end
-  end
-
-  def verify_authorization(permission)
-    custom_emojis.each { |custom_emoji| authorize(custom_emoji, permission) }
   end
 end

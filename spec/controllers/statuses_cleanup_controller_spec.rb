@@ -5,10 +5,9 @@ require 'rails_helper'
 RSpec.describe StatusesCleanupController do
   render_views
 
-  let!(:user) { Fabricate(:user) }
-
   before do
-    sign_in user, scope: :user
+    @user = Fabricate(:user)
+    sign_in @user, scope: :user
   end
 
   describe 'GET #show' do
@@ -31,9 +30,9 @@ RSpec.describe StatusesCleanupController do
     end
 
     it 'updates the account status cleanup policy' do
-      expect(user.account.statuses_cleanup_policy.enabled).to be true
-      expect(user.account.statuses_cleanup_policy.keep_direct).to be false
-      expect(user.account.statuses_cleanup_policy.keep_polls).to be true
+      expect(@user.account.statuses_cleanup_policy.enabled).to be true
+      expect(@user.account.statuses_cleanup_policy.keep_direct).to be false
+      expect(@user.account.statuses_cleanup_policy.keep_polls).to be true
     end
 
     it 'redirects' do

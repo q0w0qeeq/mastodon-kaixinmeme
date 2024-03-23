@@ -2,22 +2,23 @@ import PropTypes from 'prop-types';
 import { PureComponent, cloneElement, Children } from 'react';
 
 import classNames from 'classnames';
-import { withRouter } from 'react-router-dom';
 
 import ImmutablePropTypes from 'react-immutable-proptypes';
 
 import { supportsPassiveEvents } from 'detect-passive-events';
 import Overlay from 'react-overlays/Overlay';
 
-import { CircularProgress } from 'mastodon/components/circular_progress';
-import { WithRouterPropTypes } from 'mastodon/utils/react_router';
-
+import { CircularProgress } from "./circular_progress";
 import { IconButton } from './icon_button';
 
 const listenerOptions = supportsPassiveEvents ? { passive: true, capture: true } : true;
 let id = 0;
 
 class DropdownMenu extends PureComponent {
+
+  static contextTypes = {
+    router: PropTypes.object,
+  };
 
   static propTypes = {
     items: PropTypes.oneOfType([PropTypes.array, ImmutablePropTypes.list]).isRequired,
@@ -158,13 +159,16 @@ class DropdownMenu extends PureComponent {
 
 }
 
-class Dropdown extends PureComponent {
+export default class Dropdown extends PureComponent {
+
+  static contextTypes = {
+    router: PropTypes.object,
+  };
 
   static propTypes = {
     children: PropTypes.node,
     icon: PropTypes.string,
-    iconComponent: PropTypes.func,
-    items: PropTypes.oneOfType([PropTypes.array, ImmutablePropTypes.list]),
+    items: PropTypes.oneOfType([PropTypes.array, ImmutablePropTypes.list]).isRequired,
     loading: PropTypes.bool,
     size: PropTypes.number,
     title: PropTypes.string,
@@ -179,7 +183,6 @@ class Dropdown extends PureComponent {
     renderItem: PropTypes.func,
     renderHeader: PropTypes.func,
     onItemClick: PropTypes.func,
-    ...WithRouterPropTypes
   };
 
   static defaultProps = {
@@ -247,7 +250,7 @@ class Dropdown extends PureComponent {
       item.action();
     } else if (item && item.to) {
       e.preventDefault();
-      this.props.history.push(item.to);
+      this.context.router.history.push(item.to);
     }
   };
 
@@ -256,7 +259,7 @@ class Dropdown extends PureComponent {
   };
 
   findTarget = () => {
-    return this.target?.buttonRef?.current ?? this.target;
+    return this.target;
   };
 
   componentWillUnmount = () => {
@@ -272,7 +275,6 @@ class Dropdown extends PureComponent {
   render () {
     const {
       icon,
-      iconComponent,
       items,
       size,
       title,
@@ -293,11 +295,9 @@ class Dropdown extends PureComponent {
       onMouseDown: this.handleMouseDown,
       onKeyDown: this.handleButtonKeyDown,
       onKeyPress: this.handleKeyPress,
-      ref: this.setTargetRef,
     }) : (
       <IconButton
         icon={!open ? icon : 'close'}
-        iconComponent={iconComponent}
         title={title}
         active={open}
         disabled={disabled}
@@ -306,14 +306,14 @@ class Dropdown extends PureComponent {
         onMouseDown={this.handleMouseDown}
         onKeyDown={this.handleButtonKeyDown}
         onKeyPress={this.handleKeyPress}
-        ref={this.setTargetRef}
       />
     );
 
     return (
       <>
-        {button}
-
+        <span ref={this.setTargetRef}>
+          {button}
+        </span>
         <Overlay show={open} offset={[5, 5]} placement={'bottom'} flip target={this.findTarget} popperConfig={{ strategy: 'fixed' }}>
           {({ props, arrowProps, placement }) => (
             <div {...props}>
@@ -338,5 +338,3 @@ class Dropdown extends PureComponent {
   }
 
 }
-
-export default withRouter(Dropdown);

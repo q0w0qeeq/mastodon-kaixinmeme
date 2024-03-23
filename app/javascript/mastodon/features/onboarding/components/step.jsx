@@ -1,16 +1,15 @@
 import PropTypes from 'prop-types';
 
-import { Link } from 'react-router-dom';
+import { Check } from 'mastodon/components/check';
+import { Icon }  from 'mastodon/components/icon';
 
-import ArrowRightAltIcon from '@/material-icons/400-24px/arrow_right_alt.svg?react';
-import CheckIcon from '@/material-icons/400-24px/done.svg?react';
-import { Icon } from 'mastodon/components/icon';
+import ArrowSmallRight from './arrow_small_right';
 
-export const Step = ({ label, description, icon, iconComponent, completed, onClick, href, to }) => {
+const Step = ({ label, description, icon, completed, onClick, href }) => {
   const content = (
     <>
       <div className='onboarding__steps__item__icon'>
-        <Icon id={icon} icon={iconComponent} />
+        <Icon id={icon} />
       </div>
 
       <div className='onboarding__steps__item__description'>
@@ -19,7 +18,7 @@ export const Step = ({ label, description, icon, iconComponent, completed, onCli
       </div>
 
       <div className={completed ? 'onboarding__steps__item__progress' : 'onboarding__steps__item__go'}>
-        {completed ? <Icon icon={CheckIcon} /> : <Icon icon={ArrowRightAltIcon} />}
+        {completed ? <Check /> : <ArrowSmallRight />}
       </div>
     </>
   );
@@ -29,12 +28,6 @@ export const Step = ({ label, description, icon, iconComponent, completed, onCli
       <a href={href} onClick={onClick} target='_blank' rel='noopener' className='onboarding__steps__item'>
         {content}
       </a>
-    );
-  } else if (to) {
-    return (
-      <Link to={to} className='onboarding__steps__item'>
-        {content}
-      </Link>
     );
   }
 
@@ -49,9 +42,9 @@ Step.propTypes = {
   label: PropTypes.node,
   description: PropTypes.node,
   icon: PropTypes.string,
-  iconComponent: PropTypes.func,
   completed: PropTypes.bool,
   href: PropTypes.string,
-  to: PropTypes.string,
   onClick: PropTypes.func,
 };
+
+export default Step;

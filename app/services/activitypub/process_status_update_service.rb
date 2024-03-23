@@ -97,6 +97,8 @@ class ActivityPub::ProcessStatusUpdateService < BaseService
       end
     end
 
+    added_media_attachments = @next_media_attachments - previous_media_attachments
+
     @status.ordered_media_attachment_ids = @next_media_attachments.map(&:id)
 
     @media_attachments_changed = true if @status.ordered_media_attachment_ids != previous_media_attachments_ids
@@ -170,9 +172,9 @@ class ActivityPub::ProcessStatusUpdateService < BaseService
 
     as_array(@json['tag']).each do |tag|
       if equals_or_includes?(tag['type'], 'Hashtag')
-        @raw_tags << tag['name'] if tag['name'].present?
+        @raw_tags << tag['name']
       elsif equals_or_includes?(tag['type'], 'Mention')
-        @raw_mentions << tag['href'] if tag['href'].present?
+        @raw_mentions << tag['href']
       elsif equals_or_includes?(tag['type'], 'Emoji')
         @raw_emojis << tag
       end
@@ -280,7 +282,7 @@ class ActivityPub::ProcessStatusUpdateService < BaseService
   end
 
   def reset_preview_card!
-    @status.reset_preview_card!
+    @status.preview_cards.clear
     LinkCrawlWorker.perform_in(rand(1..59).seconds, @status.id)
   end
 

@@ -118,10 +118,6 @@ export function BlockModal () {
   return import(/* webpackChunkName: "modals/block_modal" */'../components/block_modal');
 }
 
-export function DomainBlockModal () {
-  return import(/* webpackChunkName: "modals/domain_block_modal" */'../components/domain_block_modal');
-}
-
 export function ReportModal () {
   return import(/* webpackChunkName: "modals/report_modal" */'../components/report_modal');
 }
@@ -192,12 +188,4 @@ export function About () {
 
 export function PrivacyPolicy () {
   return import(/*webpackChunkName: "features/privacy_policy" */'../../privacy_policy');
-}
-
-export function NotificationRequests () {
-  return import(/*webpackChunkName: "features/notifications/requests" */'../../notifications/requests');
-}
-
-export function NotificationRequest () {
-  return import(/*webpackChunkName: "features/notifications/request" */'../../notifications/request');
 }

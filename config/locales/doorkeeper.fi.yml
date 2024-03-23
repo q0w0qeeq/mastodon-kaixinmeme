@@ -119,11 +119,11 @@ fi:
         write: Vain kirjoitusoikeus
       title:
         accounts: Tilit
-        admin/accounts: Tilien hallinnointi
+        admin/accounts: Tilien hallinta
         admin/all: Kaikki hallinnolliset toiminnot
-        admin/reports: Raporttien hallinnointi
+        admin/reports: Raporttien hallinta
         all: Täysi pääsy Mastodon-tiliisi
-        blocks: Estot
+        blocks: Torjutut
         bookmarks: Kirjanmerkit
         conversations: Keskustelut
         crypto: Päästä päähän -salaus

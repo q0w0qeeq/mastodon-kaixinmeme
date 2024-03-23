@@ -14,16 +14,22 @@ describe Settings::DeletesController do
         get :show
       end
 
-      it 'renders confirmation page with private cache control headers', :aggregate_failures do
+      it 'renders confirmation page' do
         expect(response).to have_http_status(200)
+      end
+
+      it 'returns private cache control headers' do
         expect(response.headers['Cache-Control']).to include('private, no-store')
       end
 
       context 'when suspended' do
         let(:user) { Fabricate(:user, account_attributes: { suspended_at: Time.now.utc }) }
 
-        it 'returns http forbidden with private cache control headers', :aggregate_failures do
+        it 'returns http forbidden' do
           expect(response).to have_http_status(403)
+        end
+
+        it 'returns private cache control headers' do
           expect(response.headers['Cache-Control']).to include('private, no-store')
         end
       end
@@ -50,10 +56,19 @@ describe Settings::DeletesController do
           delete :destroy, params: { form_delete_confirmation: { password: 'petsmoldoggos' } }
         end
 
-        it 'removes user record and redirects', :aggregate_failures, :sidekiq_inline do
+        it 'redirects to sign in page' do
           expect(response).to redirect_to '/auth/sign_in'
+        end
+
+        it 'removes user record' do
           expect(User.find_by(id: user.id)).to be_nil
+        end
+
+        it 'marks account as suspended' do
           expect(user.account.reload).to be_suspended
+        end
+
+        it 'does not create an email block' do
           expect(CanonicalEmailBlock.block?(user.email)).to be false
         end
 

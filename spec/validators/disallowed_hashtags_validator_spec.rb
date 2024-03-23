@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe DisallowedHashtagsValidator do
+RSpec.describe DisallowedHashtagsValidator, type: :validator do
   let(:disallowed_tags) { [] }
 
   describe '#validate' do

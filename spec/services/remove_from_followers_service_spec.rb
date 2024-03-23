@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe RemoveFromFollowersService do
+RSpec.describe RemoveFromFollowersService, type: :service do
   subject { described_class.new }
 
   let(:bob) { Fabricate(:account, username: 'bob') }
@@ -33,7 +33,7 @@ RSpec.describe RemoveFromFollowersService do
       expect(bob.followed_by?(sender)).to be false
     end
 
-    it 'sends a reject activity', :sidekiq_inline do
+    it 'sends a reject activity' do
       expect(a_request(:post, sender.inbox_url)).to have_been_made.once
     end
   end

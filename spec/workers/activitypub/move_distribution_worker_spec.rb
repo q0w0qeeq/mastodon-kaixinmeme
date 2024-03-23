@@ -19,9 +19,8 @@ describe ActivityPub::MoveDistributionWorker do
       expect_push_bulk_to_match(ActivityPub::DeliveryWorker, [
                                   [kind_of(String), migration.account.id, 'http://example.com'],
                                   [kind_of(String), migration.account.id, 'http://example2.com'],
-                                ]) do
-        subject.perform(migration.id)
-      end
+                                ])
+      subject.perform(migration.id)
     end
   end
 end

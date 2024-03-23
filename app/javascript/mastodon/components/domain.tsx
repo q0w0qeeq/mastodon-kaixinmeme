@@ -2,8 +2,6 @@ import { useCallback } from 'react';
 
 import { defineMessages, useIntl } from 'react-intl';
 
-import LockOpenIcon from '@/material-icons/400-24px/lock_open.svg?react';
-
 import { IconButton } from './icon_button';
 
 const messages = defineMessages({
@@ -36,7 +34,6 @@ export const Domain: React.FC<Props> = ({ domain, onUnblockDomain }) => {
           <IconButton
             active
             icon='unlock'
-            iconComponent={LockOpenIcon}
             title={intl.formatMessage(messages.unblockDomain, { domain })}
             onClick={handleDomainUnblock}
           />

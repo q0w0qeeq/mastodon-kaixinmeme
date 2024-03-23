@@ -93,10 +93,15 @@ RSpec.describe 'Email Domain Blocks' do
     it_behaves_like 'forbidden for wrong role', 'Moderator'
 
     context 'when email domain block exists' do
-      it 'returns the correct blocked domain', :aggregate_failures do
+      it 'returns http success' do
         subject
 
         expect(response).to have_http_status(200)
+      end
+
+      it 'returns the correct blocked domain' do
+        subject
+
         expect(body_as_json[:domain]).to eq(email_domain_block.domain)
       end
     end
@@ -121,10 +126,15 @@ RSpec.describe 'Email Domain Blocks' do
     it_behaves_like 'forbidden for wrong role', ''
     it_behaves_like 'forbidden for wrong role', 'Moderator'
 
-    it 'returns the correct blocked email domain', :aggregate_failures do
+    it 'returns http success' do
       subject
 
       expect(response).to have_http_status(200)
+    end
+
+    it 'returns the correct blocked email domain' do
+      subject
+
       expect(body_as_json[:domain]).to eq(params[:domain])
     end
 
@@ -172,11 +182,21 @@ RSpec.describe 'Email Domain Blocks' do
     it_behaves_like 'forbidden for wrong role', ''
     it_behaves_like 'forbidden for wrong role', 'Moderator'
 
-    it 'deletes email domain block', :aggregate_failures do
+    it 'returns http success' do
       subject
 
       expect(response).to have_http_status(200)
+    end
+
+    it 'returns an empty body' do
+      subject
+
       expect(body_as_json).to be_empty
+    end
+
+    it 'deletes email domain block' do
+      subject
+
       expect(EmailDomainBlock.find_by(id: email_domain_block.id)).to be_nil
     end
 

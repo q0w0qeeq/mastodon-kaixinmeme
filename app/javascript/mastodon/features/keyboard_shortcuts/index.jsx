@@ -6,7 +6,6 @@ import { Helmet } from 'react-helmet';
 
 import ImmutablePureComponent from 'react-immutable-pure-component';
 
-import InfoIcon from '@/material-icons/400-24px/info.svg?react';
 import Column from 'mastodon/components/column';
 import ColumnHeader from 'mastodon/components/column_header';
 
@@ -28,8 +27,7 @@ class KeyboardShortcuts extends ImmutablePureComponent {
       <Column>
         <ColumnHeader
           title={intl.formatMessage(messages.heading)}
-          icon='info-circle'
-          iconComponent={InfoIcon}
+          icon='question'
           multiColumn={multiColumn}
         />
 

@@ -7,8 +7,6 @@ import { Link } from 'react-router-dom';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import ImmutablePureComponent from 'react-immutable-pure-component';
 
-import CheckIcon from '@/material-icons/400-24px/check.svg?react';
-import CloseIcon from '@/material-icons/400-24px/close.svg?react';
 import { Avatar } from 'mastodon/components/avatar';
 import { DisplayName } from 'mastodon/components/display_name';
 import { IconButton } from 'mastodon/components/icon_button';
@@ -21,7 +19,7 @@ const messages = defineMessages({
 class FollowRequest extends ImmutablePureComponent {
 
   static propTypes = {
-    account: ImmutablePropTypes.record.isRequired,
+    account: ImmutablePropTypes.map.isRequired,
     onAuthorize: PropTypes.func.isRequired,
     onReject: PropTypes.func.isRequired,
     intl: PropTypes.object.isRequired,
@@ -52,8 +50,8 @@ class FollowRequest extends ImmutablePureComponent {
           </Link>
 
           <div className='account__relationship'>
-            <IconButton title={intl.formatMessage(messages.authorize)} icon='check' iconComponent={CheckIcon} onClick={onAuthorize} />
-            <IconButton title={intl.formatMessage(messages.reject)} icon='times' iconComponent={CloseIcon} onClick={onReject} />
+            <IconButton title={intl.formatMessage(messages.authorize)} icon='check' onClick={onAuthorize} />
+            <IconButton title={intl.formatMessage(messages.reject)} icon='times' onClick={onReject} />
           </div>
         </div>
       </div>

@@ -103,11 +103,13 @@ module Mastodon::CLI
     end
 
     def upgrade_storage_fog(_progress, _attachment, _style)
-      fail_with_message 'The fog storage driver is not supported for this operation at this time'
+      say('The fog storage driver is not supported for this operation at this time', :red)
+      exit(1)
     end
 
     def upgrade_storage_azure(_progress, _attachment, _style)
-      fail_with_message 'The azure storage driver is not supported for this operation at this time'
+      say('The azure storage driver is not supported for this operation at this time', :red)
+      exit(1)
     end
 
     def upgrade_storage_filesystem(progress, attachment, style)
@@ -123,12 +125,27 @@ module Mastodon::CLI
         progress.log("Moving #{previous_path} to #{upgraded_path}") if options[:verbose]
 
         begin
-          move_previous_to_upgraded
+          unless dry_run?
+            FileUtils.mkdir_p(File.dirname(upgraded_path))
+            FileUtils.mv(previous_path, upgraded_path)
+
+            begin
+              FileUtils.rmdir(File.dirname(previous_path), parents: true)
+            rescue Errno::ENOTEMPTY
+              # OK
+            end
+          end
         rescue => e
           progress.log(pastel.red("Error processing #{previous_path}: #{e}"))
           success = false
 
-          remove_directory
+          unless dry_run?
+            begin
+              FileUtils.rmdir(File.dirname(upgraded_path), parents: true)
+            rescue Errno::ENOTEMPTY
+              # OK
+            end
+          end
         end
       end
 
@@ -137,29 +154,6 @@ module Mastodon::CLI
       # all styles are updated
       attachment.instance_write(:storage_schema_version, previous_storage_schema_version)
       success
-    end
-
-    def move_previous_to_upgraded(previous_path, upgraded_path)
-      return if dry_run?
-
-      FileUtils.mkdir_p(File.dirname(upgraded_path))
-      FileUtils.mv(previous_path, upgraded_path)
-
-      begin
-        FileUtils.rmdir(File.dirname(previous_path), parents: true)
-      rescue Errno::ENOTEMPTY
-        # OK
-      end
-    end
-
-    def remove_directory(path)
-      return if dry_run?
-
-      begin
-        FileUtils.rmdir(File.dirname(path), parents: true)
-      rescue Errno::ENOTEMPTY
-        # OK
-      end
     end
   end
 end

@@ -5,7 +5,6 @@ class Settings::ExportsController < Settings::BaseController
   include Redisable
   include Lockable
 
-  skip_before_action :check_self_destruct!
   skip_before_action :require_functional!
 
   def show

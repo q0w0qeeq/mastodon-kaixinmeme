@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-describe TagFeed do
+describe TagFeed, type: :service do
   describe '#get' do
     let(:account) { Fabricate(:account) }
     let(:tag_cats) { Fabricate(:tag, name: 'cats') }

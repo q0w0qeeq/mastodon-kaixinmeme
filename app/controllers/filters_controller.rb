@@ -25,7 +25,7 @@ class FiltersController < ApplicationController
     if @filter.save
       redirect_to filters_path
     else
-      render :new
+      render action: :new
     end
   end
 
@@ -33,7 +33,7 @@ class FiltersController < ApplicationController
     if @filter.update(resource_params)
       redirect_to filters_path
     else
-      render :edit
+      render action: :edit
     end
   end
 

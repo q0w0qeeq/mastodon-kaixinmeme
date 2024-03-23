@@ -64,11 +64,8 @@ describe Request do
       end
 
       it 'closes underlying connection' do
-        allow(subject.send(:http_client)).to receive(:close)
-
+        expect_any_instance_of(HTTP::Client).to receive(:close)
         expect { |block| subject.perform(&block) }.to yield_control
-
-        expect(subject.send(:http_client)).to have_received(:close)
       end
 
       it 'returns response which implements body_with_limit' do

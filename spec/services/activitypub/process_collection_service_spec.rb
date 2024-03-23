@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe ActivityPub::ProcessCollectionService do
+RSpec.describe ActivityPub::ProcessCollectionService, type: :service do
   subject { described_class.new }
 
   let(:actor) { Fabricate(:account, domain: 'example.com', uri: 'http://example.com/account') }
@@ -41,11 +41,8 @@ RSpec.describe ActivityPub::ProcessCollectionService do
           end
 
           it 'does not process payload' do
-            allow(ActivityPub::Activity).to receive(:factory)
-
+            expect(ActivityPub::Activity).to_not receive(:factory)
             subject.call(json, actor)
-
-            expect(ActivityPub::Activity).to_not have_received(:factory)
           end
         end
       end
@@ -62,11 +59,8 @@ RSpec.describe ActivityPub::ProcessCollectionService do
           end
 
           it 'processes the payload' do
-            allow(ActivityPub::Activity).to receive(:factory)
-
+            expect(ActivityPub::Activity).to receive(:factory)
             subject.call(json, actor)
-
-            expect(ActivityPub::Activity).to have_received(:factory)
           end
         end
       end
@@ -76,37 +70,28 @@ RSpec.describe ActivityPub::ProcessCollectionService do
       let(:forwarder) { Fabricate(:account, domain: 'example.com', uri: 'http://example.com/other_account') }
 
       it 'does not process payload if no signature exists' do
-        signature_double = instance_double(ActivityPub::LinkedDataSignature, verify_actor!: nil)
-        allow(ActivityPub::LinkedDataSignature).to receive(:new).and_return(signature_double)
-        allow(ActivityPub::Activity).to receive(:factory)
+        allow_any_instance_of(ActivityPub::LinkedDataSignature).to receive(:verify_actor!).and_return(nil)
+        expect(ActivityPub::Activity).to_not receive(:factory)
 
         subject.call(json, forwarder)
-
-        expect(ActivityPub::Activity).to_not have_received(:factory)
       end
 
       it 'processes payload with actor if valid signature exists' do
         payload['signature'] = { 'type' => 'RsaSignature2017' }
 
-        signature_double = instance_double(ActivityPub::LinkedDataSignature, verify_actor!: actor)
-        allow(ActivityPub::LinkedDataSignature).to receive(:new).and_return(signature_double)
-        allow(ActivityPub::Activity).to receive(:factory).with(instance_of(Hash), actor, instance_of(Hash))
+        allow_any_instance_of(ActivityPub::LinkedDataSignature).to receive(:verify_actor!).and_return(actor)
+        expect(ActivityPub::Activity).to receive(:factory).with(instance_of(Hash), actor, instance_of(Hash))
 
         subject.call(json, forwarder)
-
-        expect(ActivityPub::Activity).to have_received(:factory).with(instance_of(Hash), actor, instance_of(Hash))
       end
 
       it 'does not process payload if invalid signature exists' do
         payload['signature'] = { 'type' => 'RsaSignature2017' }
 
-        signature_double = instance_double(ActivityPub::LinkedDataSignature, verify_actor!: nil)
-        allow(ActivityPub::LinkedDataSignature).to receive(:new).and_return(signature_double)
-        allow(ActivityPub::Activity).to receive(:factory)
+        allow_any_instance_of(ActivityPub::LinkedDataSignature).to receive(:verify_actor!).and_return(nil)
+        expect(ActivityPub::Activity).to_not receive(:factory)
 
         subject.call(json, forwarder)
-
-        expect(ActivityPub::Activity).to_not have_received(:factory)
       end
 
       context 'when receiving a fabricated status' do
@@ -240,12 +225,7 @@ RSpec.describe ActivityPub::ProcessCollectionService do
         end
 
         it 'does not process forged payload' do
-          allow(ActivityPub::Activity).to receive(:factory)
-
-          expect { subject.call(json, forwarder) }
-            .to_not change(actor.reload.statuses, :count)
-
-          expect(ActivityPub::Activity).to_not have_received(:factory).with(
+          expect(ActivityPub::Activity).to_not receive(:factory).with(
             hash_including(
               'object' => hash_including(
                 'id' => 'https://example.com/users/bob/fake-status'
@@ -255,7 +235,7 @@ RSpec.describe ActivityPub::ProcessCollectionService do
             anything
           )
 
-          expect(ActivityPub::Activity).to_not have_received(:factory).with(
+          expect(ActivityPub::Activity).to_not receive(:factory).with(
             hash_including(
               'object' => hash_including(
                 'content' => '<p>puck was here</p>'
@@ -265,7 +245,9 @@ RSpec.describe ActivityPub::ProcessCollectionService do
             anything
           )
 
-          expect(Status.exists?(uri: 'https://example.com/users/bob/fake-status')).to be false
+          subject.call(json, forwarder)
+
+          expect(Status.where(uri: 'https://example.com/users/bob/fake-status').exists?).to be false
         end
       end
     end

@@ -7,8 +7,8 @@ module.exports = (api) => {
   };
 
   const envOptions = {
-    useBuiltIns: "usage",
-    corejs: { version: "3.30" },
+    loose: true,
+    modules: false,
     debug: false,
     include: [
       'transform-numeric-separator',
@@ -18,14 +18,29 @@ module.exports = (api) => {
     ],
   };
 
-  const plugins = [
-    ['formatjs'],
-    'preval',
-  ];
+  const config = {
+    presets: [
+      '@babel/preset-typescript',
+      ['@babel/react', reactOptions],
+      ['@babel/env', envOptions],
+    ],
+    plugins: [
+      ['formatjs'],
+      'preval',
+    ],
+    overrides: [
+      {
+        test: /tesseract\.js/,
+        presets: [
+          ['@babel/env', { ...envOptions, modules: 'commonjs' }],
+        ],
+      },
+    ],
+  };
 
   switch (env) {
   case 'production':
-    plugins.push(...[
+    config.plugins.push(...[
       'lodash',
       [
         'transform-react-remove-prop-types',
@@ -48,33 +63,14 @@ module.exports = (api) => {
       ],
     ]);
     break;
-
   case 'development':
     reactOptions.development = true;
     envOptions.debug = true;
-
-    // We need Babel to not inject polyfills in dev, as this breaks `preval` files
-    envOptions.useBuiltIns = false;
-    envOptions.corejs = undefined;
+    break;
+  case 'test':
+    envOptions.modules = 'commonjs';
     break;
   }
-
-  const config = {
-    presets: [
-      '@babel/preset-typescript',
-      ['@babel/react', reactOptions],
-      ['@babel/env', envOptions],
-    ],
-    plugins,
-    overrides: [
-      {
-        test: /tesseract\.js/,
-        presets: [
-          ['@babel/env', { ...envOptions, modules: 'commonjs' }],
-        ],
-      },
-    ],
-  };
 
   return config;
 };

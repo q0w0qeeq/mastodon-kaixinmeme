@@ -20,7 +20,8 @@ class CopyStatusStats < ActiveRecord::Migration[5.2]
   private
 
   def supports_upsert?
-    ActiveRecord::Base.connection.database_version >= 90_500
+    version = select_one("SELECT current_setting('server_version_num') AS v")['v'].to_i
+    version >= 90_500
   end
 
   def up_fast

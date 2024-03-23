@@ -19,7 +19,7 @@ const makeMapStateToProps = () => {
 class InlineAccount extends PureComponent {
 
   static propTypes = {
-    account: ImmutablePropTypes.record.isRequired,
+    account: ImmutablePropTypes.map.isRequired,
   };
 
   render () {

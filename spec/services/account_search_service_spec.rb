@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-describe AccountSearchService do
+describe AccountSearchService, type: :service do
   describe '#call' do
     context 'with a query to ignore' do
       it 'returns empty array for missing query' do
@@ -56,7 +56,7 @@ describe AccountSearchService do
         service = instance_double(ResolveAccountService, call: nil)
         allow(ResolveAccountService).to receive(:new).and_return(service)
 
-        subject.call('newuser@remote.com', nil, limit: 10, resolve: true)
+        results = subject.call('newuser@remote.com', nil, limit: 10, resolve: true)
         expect(service).to have_received(:call).with('newuser@remote.com')
       end
 
@@ -64,14 +64,14 @@ describe AccountSearchService do
         service = instance_double(ResolveAccountService, call: nil)
         allow(ResolveAccountService).to receive(:new).and_return(service)
 
-        subject.call('newuser@remote.com', nil, limit: 10, resolve: false)
+        results = subject.call('newuser@remote.com', nil, limit: 10, resolve: false)
         expect(service).to_not have_received(:call)
       end
     end
 
     it 'returns the fuzzy match first, and does not return suspended exacts' do
       partial = Fabricate(:account, username: 'exactness')
-      Fabricate(:account, username: 'exact', suspended: true)
+      exact   = Fabricate(:account, username: 'exact', suspended: true)
       results = subject.call('exact', nil, limit: 10)
 
       expect(results.size).to eq 1
@@ -79,7 +79,7 @@ describe AccountSearchService do
     end
 
     it 'does not return suspended remote accounts' do
-      Fabricate(:account, username: 'a', domain: 'remote', display_name: 'e', suspended: true)
+      remote  = Fabricate(:account, username: 'a', domain: 'remote', display_name: 'e', suspended: true)
       results = subject.call('a@example.com', nil, limit: 2)
 
       expect(results.size).to eq 0

@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe RejectFollowService do
+RSpec.describe RejectFollowService, type: :service do
   subject { described_class.new }
 
   let(:sender) { Fabricate(:account, username: 'alice') }
@@ -41,7 +41,7 @@ RSpec.describe RejectFollowService do
       expect(bob.following?(sender)).to be false
     end
 
-    it 'sends a reject activity', :sidekiq_inline do
+    it 'sends a reject activity' do
       expect(a_request(:post, bob.inbox_url)).to have_been_made.once
     end
   end

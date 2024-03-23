@@ -3,7 +3,13 @@
 require 'rails_helper'
 
 describe REST::Keys::ClaimResultSerializer do
-  let(:serialization) { serialized_record_json(record, described_class) }
+  let(:serialization) do
+    JSON.parse(
+      ActiveModelSerializers::SerializableResource.new(
+        record, serializer: described_class
+      ).to_json
+    )
+  end
   let(:record) { Keys::ClaimService::Result.new(Account.new(id: 123), 456) }
 
   describe 'account' do

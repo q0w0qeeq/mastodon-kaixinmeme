@@ -17,8 +17,6 @@ namespace :mastodon do
     ENV.delete('SIDEKIQ_REDIS_URL')
 
     begin
-      errors = false
-
       prompt.say('Your instance is identified by its domain name. Changing it afterward will break things.')
       env['LOCAL_DOMAIN'] = prompt.ask('Domain name:') do |q|
         q.required true
@@ -97,12 +95,7 @@ namespace :mastodon do
         rescue => e
           prompt.error 'Database connection could not be established with this configuration, try again.'
           prompt.error e.message
-          unless prompt.yes?('Try again?')
-            return prompt.warn 'Nothing saved. Bye!' unless prompt.yes?('Continue anyway?')
-
-            errors = true
-            break
-          end
+          break unless prompt.yes?('Try again?')
         end
       end
 
@@ -142,13 +135,7 @@ namespace :mastodon do
         rescue => e
           prompt.error 'Redis connection could not be established with this configuration, try again.'
           prompt.error e.message
-
-          unless prompt.yes?('Try again?')
-            return prompt.warn 'Nothing saved. Bye!' unless prompt.yes?('Continue anyway?')
-
-            errors = true
-            break
-          end
+          break unless prompt.yes?('Try again?')
         end
       end
 
@@ -427,23 +414,13 @@ namespace :mastodon do
             from: env['SMTP_FROM_ADDRESS'],
           }
 
-          mail = ActionMailer::Base.new.mail(
-            to: send_to,
-            subject: 'Test', # rubocop:disable Rails/I18nLocaleTexts
-            body: 'Mastodon SMTP configuration works!'
-          )
+          mail = ActionMailer::Base.new.mail to: send_to, subject: 'Test', body: 'Mastodon SMTP configuration works!'
           mail.deliver
           break
         rescue => e
           prompt.error 'E-mail could not be sent with this configuration, try again.'
           prompt.error e.message
-
-          unless prompt.yes?('Try again?')
-            return prompt.warn 'Nothing saved. Bye!' unless prompt.yes?('Continue anyway?')
-
-            errors = true
-            break
-          end
+          break unless prompt.yes?('Try again?')
         end
       end
 
@@ -489,7 +466,6 @@ namespace :mastodon do
             prompt.ok 'Done!'
           else
             prompt.error 'That failed! Perhaps your configuration is not right'
-            errors = true
           end
         end
 
@@ -506,17 +482,12 @@ namespace :mastodon do
               prompt.say 'Done!'
             else
               prompt.error 'That failed! Maybe you need swap space?'
-              errors = true
             end
           end
         end
 
         prompt.say "\n"
-        if errors
-          prompt.warn 'Your Mastodon server is set up, but there were some errors along the way, you may have to fix them.'
-        else
-          prompt.ok 'All done! You can now power on the Mastodon server 🐘'
-        end
+        prompt.ok 'All done! You can now power on the Mastodon server 🐘'
         prompt.say "\n"
 
         if db_connection_works && prompt.yes?('Do you want to create an admin user straight away?')
@@ -544,7 +515,6 @@ namespace :mastodon do
           owner_role = UserRole.find_by(name: 'Owner')
           user = User.new(email: email, password: password, confirmed_at: Time.now.utc, account_attributes: { username: username }, bypass_invite_request_check: true, role: owner_role)
           user.save(validate: false)
-          user.approve!
 
           Setting.site_contact_username = username
 

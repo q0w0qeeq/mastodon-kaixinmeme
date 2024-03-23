@@ -18,6 +18,8 @@ class AccountsController < ApplicationController
     respond_to do |format|
       format.html do
         expires_in(15.seconds, public: true, stale_while_revalidate: 30.seconds, stale_if_error: 1.hour) unless user_signed_in?
+
+        @rss_url = rss_url
       end
 
       format.rss do
@@ -50,7 +52,7 @@ class AccountsController < ApplicationController
   end
 
   def only_media_scope
-    Status.joins(:media_attachments).merge(@account.media_attachments).group(:id)
+    Status.joins(:media_attachments).merge(@account.media_attachments.reorder(nil)).group(:id)
   end
 
   def no_replies_scope
@@ -82,21 +84,29 @@ class AccountsController < ApplicationController
       short_account_url(@account, format: 'rss')
     end
   end
-  helper_method :rss_url
 
   def media_requested?
-    path_without_format.end_with?('/media') && !tag_requested?
+    request.path.split('.').first.end_with?('/media') && !tag_requested?
   end
 
   def replies_requested?
-    path_without_format.end_with?('/with_replies') && !tag_requested?
+    request.path.split('.').first.end_with?('/with_replies') && !tag_requested?
   end
 
   def tag_requested?
-    path_without_format.end_with?(Addressable::URI.parse("/tagged/#{params[:tag]}").normalize)
+    request.path.split('.').first.end_with?(Addressable::URI.parse("/tagged/#{params[:tag]}").normalize)
   end
 
-  def path_without_format
-    request.path.split('.').first
+  def cached_filtered_status_page
+    cache_collection_paginated_by_id(
+      filtered_statuses,
+      Status,
+      PAGE_SIZE,
+      params_slice(:max_id, :min_id, :since_id)
+    )
+  end
+
+  def params_slice(*keys)
+    params.slice(*keys).permit(*keys)
   end
 end

@@ -2,11 +2,7 @@
 
 class AddCommentsToDomainBlocks < ActiveRecord::Migration[5.2]
   def change
-    safety_assured do
-      change_table(:domain_blocks, bulk: true) do |t|
-        t.column :private_comment, :text
-        t.column :public_comment, :text
-      end
-    end
+    add_column :domain_blocks, :private_comment, :text
+    add_column :domain_blocks, :public_comment, :text
   end
 end

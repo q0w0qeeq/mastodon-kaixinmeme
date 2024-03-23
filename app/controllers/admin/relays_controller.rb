@@ -24,7 +24,7 @@ module Admin
         @relay.enable!
         redirect_to admin_relays_path
       else
-        render :new
+        render action: :new
       end
     end
 

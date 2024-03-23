@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe VerifyLinkService do
+RSpec.describe VerifyLinkService, type: :service do
   subject { described_class.new }
 
   context 'when given a local account' do
@@ -77,11 +77,11 @@ RSpec.describe VerifyLinkService do
 
     context 'when a document is truncated but the link back is valid' do
       let(:html) do
-        <<-HTML
+        "
           <!doctype html>
           <body>
-            <a rel="me" href="#{ActivityPub::TagManager.instance.url_for(account)}">
-        HTML
+            <a rel=\"me\" href=\"#{ActivityPub::TagManager.instance.url_for(account)}\">
+        "
       end
 
       it 'marks the field as verified' do
@@ -91,11 +91,11 @@ RSpec.describe VerifyLinkService do
 
     context 'when a link tag might be truncated' do
       let(:html) do
-        <<-HTML_TRUNCATED
+        "
           <!doctype html>
           <body>
-            <a rel="me" href="#{ActivityPub::TagManager.instance.url_for(account)}"
-        HTML_TRUNCATED
+            <a rel=\"me\" href=\"#{ActivityPub::TagManager.instance.url_for(account)}\"
+        "
       end
 
       it 'marks the field as not verified' do
@@ -166,11 +166,7 @@ RSpec.describe VerifyLinkService do
       #
       # apparently github allows the user to enter website URLs with a single
       # slash and makes no attempts to correct that.
-      let(:html) do
-        <<-HTML
-          <a href="http:/unrelated.example">Hello</a>
-        HTML
-      end
+      let(:html) { '<a href="http:/unrelated.example">Hello</a>' }
 
       it 'does not crash' do
         # We could probably put more effort into perhaps auto-correcting the

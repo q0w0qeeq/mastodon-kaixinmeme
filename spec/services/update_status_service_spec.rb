@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe UpdateStatusService do
+RSpec.describe UpdateStatusService, type: :service do
   subject { described_class.new }
 
   context 'when nothing changes' do
@@ -23,11 +23,11 @@ RSpec.describe UpdateStatusService do
   end
 
   context 'when text changes' do
-    let(:status) { Fabricate(:status, text: 'Foo') }
+    let!(:status) { Fabricate(:status, text: 'Foo') }
     let(:preview_card) { Fabricate(:preview_card) }
 
     before do
-      PreviewCardsStatus.create(status: status, preview_card: preview_card)
+      status.preview_cards << preview_card
       subject.call(status, status.account_id, text: 'Bar')
     end
 
@@ -45,11 +45,11 @@ RSpec.describe UpdateStatusService do
   end
 
   context 'when content warning changes' do
-    let(:status) { Fabricate(:status, text: 'Foo', spoiler_text: '') }
+    let!(:status) { Fabricate(:status, text: 'Foo', spoiler_text: '') }
     let(:preview_card) { Fabricate(:preview_card) }
 
     before do
-      PreviewCardsStatus.create(status: status, preview_card: preview_card)
+      status.preview_cards << preview_card
       subject.call(status, status.account_id, text: 'Foo', spoiler_text: 'Bar')
     end
 
@@ -120,7 +120,9 @@ RSpec.describe UpdateStatusService do
     before do
       status.update(poll: poll)
       VoteService.new.call(voter, poll, [0])
-      subject.call(status, status.account_id, text: 'Foo', poll: { options: %w(Bar Baz Foo), expires_in: 5.days.to_i })
+      Sidekiq::Testing.fake! do
+        subject.call(status, status.account_id, text: 'Foo', poll: { options: %w(Bar Baz Foo), expires_in: 5.days.to_i })
+      end
     end
 
     it 'updates poll' do

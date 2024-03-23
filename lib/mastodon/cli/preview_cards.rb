@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'tty-prompt'
 require_relative 'base'
 
 module Mastodon::CLI

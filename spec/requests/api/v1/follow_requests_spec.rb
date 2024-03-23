@@ -13,7 +13,7 @@ RSpec.describe 'Follow requests' do
       get '/api/v1/follow_requests', headers: headers, params: params
     end
 
-    let(:accounts) { Fabricate.times(2, :account) }
+    let(:accounts) { Fabricate.times(5, :account) }
     let(:params)   { {} }
 
     let(:expected_response) do
@@ -32,15 +32,20 @@ RSpec.describe 'Follow requests' do
 
     it_behaves_like 'forbidden for wrong scope', 'write write:follows'
 
-    it 'returns the expected content from accounts requesting to follow', :aggregate_failures do
+    it 'returns http success' do
       subject
 
       expect(response).to have_http_status(200)
+    end
+
+    it 'returns the expected content from accounts requesting to follow' do
+      subject
+
       expect(body_as_json).to match_array(expected_response)
     end
 
     context 'with limit param' do
-      let(:params) { { limit: 1 } }
+      let(:params) { { limit: 2 } }
 
       it 'returns only the requested number of follow requests' do
         subject
@@ -63,9 +68,19 @@ RSpec.describe 'Follow requests' do
 
     it_behaves_like 'forbidden for wrong scope', 'read read:follows'
 
-    it 'allows the requesting follower to follow', :aggregate_failures do
-      expect { subject }.to change { follower.following?(user.account) }.from(false).to(true)
+    it 'returns http success' do
+      subject
+
       expect(response).to have_http_status(200)
+    end
+
+    it 'allows the requesting follower to follow' do
+      expect { subject }.to change { follower.following?(user.account) }.from(false).to(true)
+    end
+
+    it 'returns JSON with followed_by set to true' do
+      subject
+
       expect(body_as_json[:followed_by]).to be true
     end
   end
@@ -83,11 +98,21 @@ RSpec.describe 'Follow requests' do
 
     it_behaves_like 'forbidden for wrong scope', 'read read:follows'
 
-    it 'removes the follow request', :aggregate_failures do
+    it 'returns http success' do
       subject
 
       expect(response).to have_http_status(200)
+    end
+
+    it 'removes the follow request' do
+      subject
+
       expect(FollowRequest.where(target_account: user.account, account: follower)).to_not exist
+    end
+
+    it 'returns JSON with followed_by set to false' do
+      subject
+
       expect(body_as_json[:followed_by]).to be false
     end
   end

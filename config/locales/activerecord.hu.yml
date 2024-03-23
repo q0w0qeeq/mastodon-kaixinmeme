@@ -20,7 +20,7 @@ hu:
           attributes:
             username:
               invalid: csak betűket, számokat vagy alávonást tartalmazhat
-              reserved: foglalt
+              reserved: fenntartott
         admin/webhook:
           attributes:
             url:

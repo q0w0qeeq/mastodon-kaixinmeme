@@ -28,7 +28,7 @@ class DeliveryFailureTracker
   end
 
   def available?
-    !UnavailableDomain.exists?(domain: @host)
+    !UnavailableDomain.where(domain: @host).exists?
   end
 
   def exhausted_deliveries_days
@@ -62,7 +62,7 @@ class DeliveryFailureTracker
         key.delete_prefix(exhausted_deliveries_key_by(''))
       end
 
-      domains - UnavailableDomain.pluck(:domain)
+      domains - UnavailableDomain.all.pluck(:domain)
     end
 
     def warning_domains_map(domains = nil)

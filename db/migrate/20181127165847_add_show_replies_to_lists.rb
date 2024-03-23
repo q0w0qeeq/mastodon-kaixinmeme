@@ -1,15 +1,19 @@
 # frozen_string_literal: true
 
+require Rails.root.join('lib', 'mastodon', 'migration_helpers')
+
 class AddShowRepliesToLists < ActiveRecord::Migration[5.2]
+  include Mastodon::MigrationHelpers
+
   disable_ddl_transaction!
 
   def up
     safety_assured do
-      add_column(
+      add_column_with_default(
         :lists,
         :replies_policy,
         :integer,
-        null: false,
+        allow_null: false,
         default: 0
       )
     end

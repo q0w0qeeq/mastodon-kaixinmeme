@@ -2,13 +2,13 @@ import PropTypes from 'prop-types';
 
 import { FormattedMessage } from 'react-intl';
 
-import GroupsIcon from '@/material-icons/400-24px/group.svg?react';
-import PersonIcon from '@/material-icons/400-24px/person.svg?react';
-import SmartToyIcon from '@/material-icons/400-24px/smart_toy.svg?react';
+import { ReactComponent as GroupsIcon } from '@material-design-icons/svg/outlined/group.svg';
+import { ReactComponent as PersonIcon } from '@material-design-icons/svg/outlined/person.svg';
+import { ReactComponent as SmartToyIcon } from '@material-design-icons/svg/outlined/smart_toy.svg';
 
 
-export const Badge = ({ icon, label, domain, roleId }) => (
-  <div className='account-role' data-account-role-id={roleId}>
+export const Badge = ({ icon, label, domain }) => (
+  <div className='account-role'>
     {icon}
     {label}
     {domain && <span className='account-role__domain'>{domain}</span>}
@@ -19,7 +19,6 @@ Badge.propTypes = {
   icon: PropTypes.node,
   label: PropTypes.node,
   domain: PropTypes.node,
-  roleId: PropTypes.string
 };
 
 Badge.defaultProps = {

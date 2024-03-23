@@ -4,29 +4,26 @@ require 'rails_helper'
 require 'mastodon/cli/cache'
 
 describe Mastodon::CLI::Cache do
-  subject { cli.invoke(action, arguments, options) }
-
   let(:cli) { described_class.new }
-  let(:arguments) { [] }
-  let(:options) { {} }
 
-  it_behaves_like 'CLI Command'
+  describe '.exit_on_failure?' do
+    it 'returns true' do
+      expect(described_class.exit_on_failure?).to be true
+    end
+  end
 
   describe '#clear' do
-    let(:action) { :clear }
-
     before { allow(Rails.cache).to receive(:clear) }
 
     it 'clears the Rails cache' do
-      expect { subject }
-        .to output_results('OK')
+      expect { cli.invoke(:clear) }.to output(
+        a_string_including('OK')
+      ).to_stdout
       expect(Rails.cache).to have_received(:clear)
     end
   end
 
   describe '#recount' do
-    let(:action) { :recount }
-
     context 'with the `accounts` argument' do
       let(:arguments) { ['accounts'] }
       let(:account_stat) { Fabricate(:account_stat) }
@@ -36,8 +33,9 @@ describe Mastodon::CLI::Cache do
       end
 
       it 're-calculates account records in the cache' do
-        expect { subject }
-          .to output_results('OK')
+        expect { cli.invoke(:recount, arguments) }.to output(
+          a_string_including('OK')
+        ).to_stdout
 
         expect(account_stat.reload.statuses_count).to be_zero
       end
@@ -52,8 +50,9 @@ describe Mastodon::CLI::Cache do
       end
 
       it 're-calculates account records in the cache' do
-        expect { subject }
-          .to output_results('OK')
+        expect { cli.invoke(:recount, arguments) }.to output(
+          a_string_including('OK')
+        ).to_stdout
 
         expect(status_stat.reload.replies_count).to be_zero
       end
@@ -63,8 +62,9 @@ describe Mastodon::CLI::Cache do
       let(:arguments) { ['other-type'] }
 
       it 'Exits with an error message' do
-        expect { subject }
-          .to raise_error(Thor::Error, /Unknown/)
+        expect { cli.invoke(:recount, arguments) }.to output(
+          a_string_including('Unknown')
+        ).to_stdout.and raise_error(SystemExit)
       end
     end
   end

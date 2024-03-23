@@ -23,7 +23,10 @@ class AccountAlias < ApplicationRecord
   after_create :add_to_account
   after_destroy :remove_from_account
 
-  normalizes :acct, with: ->(acct) { acct.strip.delete_prefix('@') }
+  def acct=(val)
+    val = val.to_s.strip
+    super(val.start_with?('@') ? val[1..] : val)
+  end
 
   def pretty_acct
     username, domain = acct.split('@', 2)

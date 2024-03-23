@@ -122,10 +122,15 @@ RSpec.describe 'Reports' do
     it_behaves_like 'forbidden for wrong scope', 'write:statuses'
     it_behaves_like 'forbidden for wrong role', ''
 
-    it 'returns the requested report content', :aggregate_failures do
+    it 'returns http success' do
       subject
 
       expect(response).to have_http_status(200)
+    end
+
+    it 'returns the requested report content' do
+      subject
+
       expect(body_as_json).to include(
         {
           id: report.id.to_s,
@@ -150,12 +155,18 @@ RSpec.describe 'Reports' do
     let!(:report) { Fabricate(:report, category: :other) }
     let(:params)  { { category: 'spam' } }
 
-    it 'updates the report category', :aggregate_failures do
-      expect { subject }
-        .to change { report.reload.category }.from('other').to('spam')
-        .and create_an_action_log
+    it 'returns http success' do
+      subject
 
       expect(response).to have_http_status(200)
+    end
+
+    it 'updates the report category' do
+      expect { subject }.to change { report.reload.category }.from('other').to('spam')
+    end
+
+    it 'returns the updated report content' do
+      subject
 
       report.reload
 
@@ -185,11 +196,14 @@ RSpec.describe 'Reports' do
     it_behaves_like 'forbidden for wrong scope', 'write:statuses'
     it_behaves_like 'forbidden for wrong role', ''
 
-    it 'marks report as resolved', :aggregate_failures do
-      expect { subject }
-        .to change { report.reload.unresolved? }.from(true).to(false)
-        .and create_an_action_log
+    it 'returns http success' do
+      subject
+
       expect(response).to have_http_status(200)
+    end
+
+    it 'marks report as resolved' do
+      expect { subject }.to change { report.reload.unresolved? }.from(true).to(false)
     end
   end
 
@@ -203,11 +217,14 @@ RSpec.describe 'Reports' do
     it_behaves_like 'forbidden for wrong scope', 'write:statuses'
     it_behaves_like 'forbidden for wrong role', ''
 
-    it 'marks report as unresolved', :aggregate_failures do
-      expect { subject }
-        .to change { report.reload.unresolved? }.from(false).to(true)
-        .and create_an_action_log
+    it 'returns http success' do
+      subject
+
       expect(response).to have_http_status(200)
+    end
+
+    it 'marks report as unresolved' do
+      expect { subject }.to change { report.reload.unresolved? }.from(false).to(true)
     end
   end
 
@@ -221,11 +238,14 @@ RSpec.describe 'Reports' do
     it_behaves_like 'forbidden for wrong scope', 'write:statuses'
     it_behaves_like 'forbidden for wrong role', ''
 
-    it 'assigns report to the requesting user', :aggregate_failures do
-      expect { subject }
-        .to change { report.reload.assigned_account_id }.from(nil).to(user.account.id)
-        .and create_an_action_log
+    it 'returns http success' do
+      subject
+
       expect(response).to have_http_status(200)
+    end
+
+    it 'assigns report to the requesting user' do
+      expect { subject }.to change { report.reload.assigned_account_id }.from(nil).to(user.account.id)
     end
   end
 
@@ -239,17 +259,14 @@ RSpec.describe 'Reports' do
     it_behaves_like 'forbidden for wrong scope', 'write:statuses'
     it_behaves_like 'forbidden for wrong role', ''
 
-    it 'unassigns report from assignee', :aggregate_failures do
-      expect { subject }
-        .to change { report.reload.assigned_account_id }.from(user.account.id).to(nil)
-        .and create_an_action_log
+    it 'returns http success' do
+      subject
+
       expect(response).to have_http_status(200)
     end
-  end
 
-  private
-
-  def create_an_action_log
-    change(Admin::ActionLog, :count).by(1)
+    it 'unassigns report from assignee' do
+      expect { subject }.to change { report.reload.assigned_account_id }.from(user.account.id).to(nil)
+    end
   end
 end

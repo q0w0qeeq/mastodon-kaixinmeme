@@ -1,7 +1,11 @@
 # frozen_string_literal: true
 
-class Api::V1::Instances::TranslationLanguagesController < Api::V1::Instances::BaseController
+class Api::V1::Instances::TranslationLanguagesController < Api::BaseController
+  skip_before_action :require_authenticated_user!, unless: :limited_federation_mode?
+
   before_action :set_languages
+
+  vary_by ''
 
   def show
     cache_even_if_authenticated!

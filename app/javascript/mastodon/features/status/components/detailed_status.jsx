@@ -1,21 +1,18 @@
 import PropTypes from 'prop-types';
 
-import { FormattedDate, FormattedMessage } from 'react-intl';
+import { injectIntl, defineMessages, FormattedDate, FormattedMessage } from 'react-intl';
 
 import classNames from 'classnames';
-import { Link, withRouter } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import ImmutablePureComponent from 'react-immutable-pure-component';
 
-import AlternateEmailIcon from '@/material-icons/400-24px/alternate_email.svg?react';
 import { AnimatedNumber } from 'mastodon/components/animated_number';
 import EditedTimestamp from 'mastodon/components/edited_timestamp';
 import { getHashtagBarForStatus } from 'mastodon/components/hashtag_bar';
 import { Icon }  from 'mastodon/components/icon';
 import PictureInPicturePlaceholder from 'mastodon/components/picture_in_picture_placeholder';
-import { VisibilityIcon } from 'mastodon/components/visibility_icon';
-import { WithRouterPropTypes } from 'mastodon/utils/react_router';
 
 import { Avatar } from '../../../components/avatar';
 import { DisplayName } from '../../../components/display_name';
@@ -27,7 +24,18 @@ import Video from '../../video';
 
 import Card from './card';
 
+const messages = defineMessages({
+  public_short: { id: 'privacy.public.short', defaultMessage: 'Public' },
+  unlisted_short: { id: 'privacy.unlisted.short', defaultMessage: 'Unlisted' },
+  private_short: { id: 'privacy.private.short', defaultMessage: 'Followers only' },
+  direct_short: { id: 'privacy.direct.short', defaultMessage: 'Mentioned people only' },
+});
+
 class DetailedStatus extends ImmutablePureComponent {
+
+  static contextTypes = {
+    router: PropTypes.object,
+  };
 
   static propTypes = {
     status: ImmutablePropTypes.map,
@@ -45,7 +53,6 @@ class DetailedStatus extends ImmutablePureComponent {
       available: PropTypes.bool,
     }),
     onToggleMediaVisibility: PropTypes.func,
-    ...WithRouterPropTypes,
   };
 
   state = {
@@ -53,9 +60,9 @@ class DetailedStatus extends ImmutablePureComponent {
   };
 
   handleAccountClick = (e) => {
-    if (e.button === 0 && !(e.ctrlKey || e.metaKey) && this.props.history) {
+    if (e.button === 0 && !(e.ctrlKey || e.metaKey) && this.context.router) {
       e.preventDefault();
-      this.props.history.push(`/@${this.props.status.getIn(['account', 'acct'])}`);
+      this.context.router.history.push(`/@${this.props.status.getIn(['account', 'acct'])}`);
     }
 
     e.stopPropagation();
@@ -125,14 +132,14 @@ class DetailedStatus extends ImmutablePureComponent {
     } else if (attachments.getIn([0, 'type']) === 'audio') {
       return '16 / 9';
     } else {
-      return (attachments.size === 1 && attachments.getIn([0, 'meta', 'small', 'aspect'])) ? attachments.getIn([0, 'meta', 'small', 'aspect']) : '3 / 2';
+      return (attachments.size === 1 && attachments.getIn([0, 'meta', 'small', 'aspect'])) ? attachments.getIn([0, 'meta', 'small', 'aspect']) : '3 / 2'
     }
   }
 
   render () {
     const status = this._properStatus();
     const outerStyle = { boxSizing: 'border-box' };
-    const { compact, pictureInPicture } = this.props;
+    const { intl, compact, pictureInPicture } = this.props;
 
     if (!status) {
       return null;
@@ -141,7 +148,9 @@ class DetailedStatus extends ImmutablePureComponent {
     let media           = '';
     let applicationLink = '';
     let reblogLink = '';
+    let reblogIcon = 'retweet';
     let favouriteLink = '';
+    let edited = '';
 
     if (this.props.measureHeight) {
       outerStyle.height = `${this.state.height}px`;
@@ -213,50 +222,73 @@ class DetailedStatus extends ImmutablePureComponent {
     }
 
     if (status.get('application')) {
-      applicationLink = <>·<a className='detailed-status__application' href={status.getIn(['application', 'website'])} target='_blank' rel='noopener noreferrer'>{status.getIn(['application', 'name'])}</a></>;
+      applicationLink = <> · <a className='detailed-status__application' href={status.getIn(['application', 'website'])} target='_blank' rel='noopener noreferrer'>{status.getIn(['application', 'name'])}</a></>;
     }
 
-    const visibilityLink = <>·<VisibilityIcon visibility={status.get('visibility')} /></>;
+    const visibilityIconInfo = {
+      'public': { icon: 'globe', text: intl.formatMessage(messages.public_short) },
+      'unlisted': { icon: 'unlock', text: intl.formatMessage(messages.unlisted_short) },
+      'private': { icon: 'lock', text: intl.formatMessage(messages.private_short) },
+      'direct': { icon: 'at', text: intl.formatMessage(messages.direct_short) },
+    };
+
+    const visibilityIcon = visibilityIconInfo[status.get('visibility')];
+    const visibilityLink = <> · <Icon id={visibilityIcon.icon} title={visibilityIcon.text} /></>;
 
     if (['private', 'direct'].includes(status.get('visibility'))) {
       reblogLink = '';
-    } else if (this.props.history) {
+    } else if (this.context.router) {
       reblogLink = (
-        <Link to={`/@${status.getIn(['account', 'acct'])}/${status.get('id')}/reblogs`} className='detailed-status__link'>
-          <span className='detailed-status__reblogs'>
-            <AnimatedNumber value={status.get('reblogs_count')} />
-          </span>
-          <FormattedMessage id='status.reblogs' defaultMessage='{count, plural, one {boost} other {boosts}}' values={{ count: status.get('reblogs_count') }} />
-        </Link>
+        <>
+          {' · '}
+          <Link to={`/@${status.getIn(['account', 'acct'])}/${status.get('id')}/reblogs`} className='detailed-status__link'>
+            <Icon id={reblogIcon} />
+            <span className='detailed-status__reblogs'>
+              <AnimatedNumber value={status.get('reblogs_count')} />
+            </span>
+          </Link>
+        </>
       );
     } else {
       reblogLink = (
-        <a href={`/interact/${status.get('id')}?type=reblog`} className='detailed-status__link' onClick={this.handleModalLink}>
-          <span className='detailed-status__reblogs'>
-            <AnimatedNumber value={status.get('reblogs_count')} />
-          </span>
-          <FormattedMessage id='status.reblogs' defaultMessage='{count, plural, one {boost} other {boosts}}' values={{ count: status.get('reblogs_count') }} />
-        </a>
+        <>
+          {' · '}
+          <a href={`/interact/${status.get('id')}?type=reblog`} className='detailed-status__link' onClick={this.handleModalLink}>
+            <Icon id={reblogIcon} />
+            <span className='detailed-status__reblogs'>
+              <AnimatedNumber value={status.get('reblogs_count')} />
+            </span>
+          </a>
+        </>
       );
     }
 
-    if (this.props.history) {
+    if (this.context.router) {
       favouriteLink = (
         <Link to={`/@${status.getIn(['account', 'acct'])}/${status.get('id')}/favourites`} className='detailed-status__link'>
+          <Icon id='star' />
           <span className='detailed-status__favorites'>
             <AnimatedNumber value={status.get('favourites_count')} />
           </span>
-          <FormattedMessage id='status.favourites' defaultMessage='{count, plural, one {favorite} other {favorites}}' values={{ count: status.get('favourites_count') }} />
         </Link>
       );
     } else {
       favouriteLink = (
         <a href={`/interact/${status.get('id')}?type=favourite`} className='detailed-status__link' onClick={this.handleModalLink}>
+          <Icon id='star' />
           <span className='detailed-status__favorites'>
             <AnimatedNumber value={status.get('favourites_count')} />
           </span>
-          <FormattedMessage id='status.favourites' defaultMessage='{count, plural, one {favorite} other {favorites}}' values={{ count: status.get('favourites_count') }} />
         </a>
+      );
+    }
+
+    if (status.get('edited_at')) {
+      edited = (
+        <>
+          {' · '}
+          <EditedTimestamp statusId={status.get('id')} timestamp={status.get('edited_at')} />
+        </>
       );
     }
 
@@ -268,7 +300,7 @@ class DetailedStatus extends ImmutablePureComponent {
         <div ref={this.setRef} className={classNames('detailed-status', { compact })}>
           {status.get('visibility') === 'direct' && (
             <div className='status__prepend'>
-              <div className='status__prepend-icon-wrapper'><Icon id='at' icon={AlternateEmailIcon} className='status__prepend-icon' /></div>
+              <div className='status__prepend-icon-wrapper'><Icon id='at' className='status__prepend-icon' fixedWidth /></div>
               <FormattedMessage id='status.direct_indicator' defaultMessage='Private mention' />
             </div>
           )}
@@ -290,23 +322,9 @@ class DetailedStatus extends ImmutablePureComponent {
           {expanded && hashtagBar}
 
           <div className='detailed-status__meta'>
-            <div className='detailed-status__meta__line'>
-              <a className='detailed-status__datetime' href={`/@${status.getIn(['account', 'acct'])}/${status.get('id')}`} target='_blank' rel='noopener noreferrer'>
-                <FormattedDate value={new Date(status.get('created_at'))} year='numeric' month='short' day='2-digit' hour='2-digit' minute='2-digit' />
-              </a>
-
-              {visibilityLink}
-
-              {applicationLink}
-            </div>
-
-            {status.get('edited_at') && <div className='detailed-status__meta__line'><EditedTimestamp statusId={status.get('id')} timestamp={status.get('edited_at')} /></div>}
-
-            <div className='detailed-status__meta__line'>
-              {reblogLink}
-              {reblogLink && <>·</>}
-              {favouriteLink}
-            </div>
+            <a className='detailed-status__datetime' href={`/@${status.getIn(['account', 'acct'])}/${status.get('id')}`} target='_blank' rel='noopener noreferrer'>
+              <FormattedDate value={new Date(status.get('created_at'))} hour12={false} year='numeric' month='short' day='2-digit' hour='2-digit' minute='2-digit' />
+            </a>{edited}{visibilityLink}{applicationLink}{reblogLink} · {favouriteLink}
           </div>
         </div>
       </div>
@@ -315,4 +333,4 @@ class DetailedStatus extends ImmutablePureComponent {
 
 }
 
-export default withRouter(DetailedStatus);
+export default injectIntl(DetailedStatus);

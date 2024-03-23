@@ -18,6 +18,6 @@ class Settings::BaseController < ApplicationController
   end
 
   def require_not_suspended!
-    forbidden if current_account.unavailable?
+    forbidden if current_account.suspended?
   end
 end

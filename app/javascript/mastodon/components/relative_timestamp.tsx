@@ -53,6 +53,7 @@ const messages = defineMessages({
 });
 
 const dateFormatOptions = {
+  hour12: false,
   year: 'numeric',
   month: 'short',
   day: '2-digit',
@@ -102,7 +103,7 @@ const getUnitDelay = (units: string) => {
 };
 
 export const timeAgoString = (
-  intl: Pick<IntlShape, 'formatDate' | 'formatMessage'>,
+  intl: IntlShape,
   date: Date,
   now: number,
   year: number,

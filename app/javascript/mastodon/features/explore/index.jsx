@@ -8,8 +8,6 @@ import { NavLink, Switch, Route } from 'react-router-dom';
 
 import { connect } from 'react-redux';
 
-import ExploreIcon from '@/material-icons/400-24px/explore.svg?react';
-import SearchIcon from '@/material-icons/400-24px/search.svg?react';
 import Column from 'mastodon/components/column';
 import ColumnHeader from 'mastodon/components/column_header';
 import Search from 'mastodon/features/compose/containers/search_container';
@@ -34,6 +32,7 @@ const mapStateToProps = state => ({
 class Explore extends PureComponent {
 
   static contextTypes = {
+    router: PropTypes.object,
     identity: PropTypes.object,
   };
 
@@ -58,8 +57,7 @@ class Explore extends PureComponent {
     return (
       <Column bindToDocument={!multiColumn} ref={this.setRef} label={intl.formatMessage(messages.title)}>
         <ColumnHeader
-          icon={isSearching ? 'search' : 'explore'}
-          iconComponent={isSearching ? SearchIcon : ExploreIcon}
+          icon={isSearching ? 'search' : 'hashtag'}
           title={intl.formatMessage(isSearching ? messages.searchResults : messages.title)}
           onClick={this.handleHeaderClick}
           multiColumn={multiColumn}

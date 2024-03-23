@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe ActivityPub::ProcessAccountService do
+RSpec.describe ActivityPub::ProcessAccountService, type: :service do
   subject { described_class.new }
 
   context 'with property values, an avatar, and a profile header' do
@@ -64,7 +64,7 @@ RSpec.describe ActivityPub::ProcessAccountService do
   end
 
   context 'when account is not suspended' do
-    subject { described_class.new.call(account.username, account.domain, payload) }
+    subject { described_class.new.call('alice', 'example.com', payload) }
 
     let!(:account) { Fabricate(:account, username: 'alice', domain: 'example.com') }
 
@@ -160,10 +160,12 @@ RSpec.describe ActivityPub::ProcessAccountService do
       stub_const 'ActivityPub::ProcessAccountService::SUBDOMAINS_RATELIMIT', 5
     end
 
-    it 'creates accounts without exceeding rate limit' do
-      expect { subject }
-        .to create_some_remote_accounts
-        .and create_fewer_than_rate_limit_accounts
+    it 'creates at least some accounts' do
+      expect { subject }.to change { Account.remote.count }.by_at_least(2)
+    end
+
+    it 'creates no more account than the limit allows' do
+      expect { subject }.to change { Account.remote.count }.by_at_most(5)
     end
   end
 
@@ -224,20 +226,12 @@ RSpec.describe ActivityPub::ProcessAccountService do
       end
     end
 
-    it 'creates accounts without exceeding rate limit', :sidekiq_inline do
-      expect { subject.call('user1', 'foo.test', payload) }
-        .to create_some_remote_accounts
-        .and create_fewer_than_rate_limit_accounts
+    it 'creates at least some accounts' do
+      expect { subject.call('user1', 'foo.test', payload) }.to change { Account.remote.count }.by_at_least(2)
     end
-  end
 
-  private
-
-  def create_some_remote_accounts
-    change(Account.remote, :count).by_at_least(2)
-  end
-
-  def create_fewer_than_rate_limit_accounts
-    change(Account.remote, :count).by_at_most(5)
+    it 'creates no more account than the limit allows' do
+      expect { subject.call('user1', 'foo.test', payload) }.to change { Account.remote.count }.by_at_most(5)
+    end
   end
 end

@@ -4,18 +4,39 @@
 
 import { loadIntlPolyfills } from './intl';
 
+function importBasePolyfills() {
+  return import(/* webpackChunkName: "base_polyfills" */ './base_polyfills');
+}
+
 function importExtraPolyfills() {
   return import(/* webpackChunkName: "extra_polyfills" */ './extra_polyfills');
 }
 
 export function loadPolyfills() {
-  // Safari does not have requestIdleCallback.
+  const needsBasePolyfills = !(
+    'toBlob' in HTMLCanvasElement.prototype &&
+    'assign' in Object &&
+    'values' in Object &&
+    'Symbol' in window &&
+    'finally' in Promise.prototype
+  );
+
+  // Latest version of Firefox and Safari do not have IntersectionObserver.
+  // Edge does not have requestIdleCallback.
   // This avoids shipping them all the polyfills.
-  const needsExtraPolyfills = !window.requestIdleCallback;
+  /* eslint-disable @typescript-eslint/no-unnecessary-condition -- those properties might not exist in old browsers, even if they are always here in types */
+  const needsExtraPolyfills = !(
+    window.AbortController &&
+    window.IntersectionObserver &&
+    window.IntersectionObserverEntry &&
+    'isIntersecting' in IntersectionObserverEntry.prototype &&
+    window.requestIdleCallback
+  );
+  /* eslint-enable @typescript-eslint/no-unnecessary-condition */
 
   return Promise.all([
     loadIntlPolyfills(),
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- those properties might not exist in old browsers, even if they are always here in types
+    needsBasePolyfills && importBasePolyfills(),
     needsExtraPolyfills && importExtraPolyfills(),
   ]);
 }

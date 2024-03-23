@@ -3,7 +3,7 @@
 module Settings
   module Exports
     class FollowingAccountsController < BaseController
-      include Settings::ExportControllerConcern
+      include ExportControllerConcern
 
       def index
         send_export_file

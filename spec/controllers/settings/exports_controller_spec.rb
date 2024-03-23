@@ -14,8 +14,11 @@ describe Settings::ExportsController do
         get :show
       end
 
-      it 'returns http success with private cache control headers', :aggregate_failures do
+      it 'returns http success' do
         expect(response).to have_http_status(200)
+      end
+
+      it 'returns private cache control headers' do
         expect(response.headers['Cache-Control']).to include('private, no-store')
       end
     end
@@ -39,9 +42,11 @@ describe Settings::ExportsController do
     end
 
     it 'queues BackupWorker job by 1' do
-      expect do
-        post :create
-      end.to change(BackupWorker.jobs, :size).by(1)
+      Sidekiq::Testing.fake! do
+        expect do
+          post :create
+        end.to change(BackupWorker.jobs, :size).by(1)
+      end
     end
   end
 end

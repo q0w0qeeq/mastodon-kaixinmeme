@@ -7,7 +7,7 @@ class AccountDeletionWorker
 
   def perform(account_id, options = {})
     account = Account.find(account_id)
-    return unless account.unavailable?
+    return unless account.suspended?
 
     reserve_username = options.with_indifferent_access.fetch(:reserve_username, true)
     skip_activitypub = options.with_indifferent_access.fetch(:skip_activitypub, false)

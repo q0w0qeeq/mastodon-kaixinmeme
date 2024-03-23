@@ -16,17 +16,10 @@ class ManifestSerializer < ActiveModel::Serializer
     512
   ).freeze
 
-  attributes :id, :name, :short_name,
+  attributes :name, :short_name,
              :icons, :theme_color, :background_color,
              :display, :start_url, :scope,
              :share_target, :shortcuts
-
-  def id
-    # This is set to `/home` because that was the old value of `start_url` and
-    # thus the fallback ID computed by Chrome:
-    # https://developer.chrome.com/blog/pwa-manifest-id/
-    '/home'
-  end
 
   def name
     object.title
@@ -39,7 +32,7 @@ class ManifestSerializer < ActiveModel::Serializer
   def icons
     ICON_SIZES.map do |size|
       {
-        src: frontend_asset_url("icons/android-chrome-#{size}x#{size}.png"),
+        src: full_pack_url("media/icons/android-chrome-#{size}x#{size}.png"),
         sizes: "#{size}x#{size}",
         type: 'image/png',
         purpose: 'any maskable',
@@ -60,7 +53,7 @@ class ManifestSerializer < ActiveModel::Serializer
   end
 
   def start_url
-    '/'
+    '/home'
   end
 
   def scope
@@ -90,10 +83,6 @@ class ManifestSerializer < ActiveModel::Serializer
       {
         name: 'Notifications',
         url: '/notifications',
-      },
-      {
-        name: 'Explore',
-        url: '/explore',
       },
     ]
   end

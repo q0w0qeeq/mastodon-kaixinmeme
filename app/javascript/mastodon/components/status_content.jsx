@@ -4,12 +4,11 @@ import { PureComponent } from 'react';
 import { FormattedMessage, injectIntl } from 'react-intl';
 
 import classnames from 'classnames';
-import { Link, withRouter } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 
-import ChevronRightIcon from '@/material-icons/400-24px/chevron_right.svg?react';
 import { Icon }  from 'mastodon/components/icon';
 import PollContainer from 'mastodon/containers/poll_container';
 import { autoPlayGif, languages as preloadedLanguages } from 'mastodon/initial_state';
@@ -69,6 +68,7 @@ const mapStateToProps = state => ({
 class StatusContent extends PureComponent {
 
   static contextTypes = {
+    router: PropTypes.object,
     identity: PropTypes.object,
   };
 
@@ -83,10 +83,6 @@ class StatusContent extends PureComponent {
     onCollapsedToggle: PropTypes.func,
     languages: ImmutablePropTypes.map,
     intl: PropTypes.object,
-    // from react-router
-    match: PropTypes.object.isRequired,
-    location: PropTypes.object.isRequired,
-    history: PropTypes.object.isRequired
   };
 
   state = {
@@ -177,18 +173,18 @@ class StatusContent extends PureComponent {
   }
 
   onMentionClick = (mention, e) => {
-    if (this.props.history && e.button === 0 && !(e.ctrlKey || e.metaKey)) {
+    if (this.context.router && e.button === 0 && !(e.ctrlKey || e.metaKey)) {
       e.preventDefault();
-      this.props.history.push(`/@${mention.get('acct')}`);
+      this.context.router.history.push(`/@${mention.get('acct')}`);
     }
   };
 
   onHashtagClick = (hashtag, e) => {
     hashtag = hashtag.replace(/^#/, '');
 
-    if (this.props.history && e.button === 0 && !(e.ctrlKey || e.metaKey)) {
+    if (this.context.router && e.button === 0 && !(e.ctrlKey || e.metaKey)) {
       e.preventDefault();
-      this.props.history.push(`/tags/${hashtag}`);
+      this.context.router.history.push(`/tags/${hashtag}`);
     }
   };
 
@@ -251,14 +247,14 @@ class StatusContent extends PureComponent {
     const spoilerContent = { __html: status.getIn(['translation', 'spoilerHtml']) || status.get('spoilerHtml') };
     const language = status.getIn(['translation', 'language']) || status.get('language');
     const classNames = classnames('status__content', {
-      'status__content--with-action': this.props.onClick && this.props.history,
+      'status__content--with-action': this.props.onClick && this.context.router,
       'status__content--with-spoiler': status.get('spoiler_text').length > 0,
       'status__content--collapsed': renderReadMore,
     });
 
     const readMoreButton = renderReadMore && (
       <button className='status__content__read-more-button' onClick={this.props.onClick} key='read-more'>
-        <FormattedMessage id='status.read_more' defaultMessage='Read more' /><Icon id='angle-right' icon={ChevronRightIcon} />
+        <FormattedMessage id='status.read_more' defaultMessage='Read more' /><Icon id='angle-right' fixedWidth />
       </button>
     );
 
@@ -328,4 +324,4 @@ class StatusContent extends PureComponent {
 
 }
 
-export default withRouter(connect(mapStateToProps)(injectIntl(StatusContent)));
+export default connect(mapStateToProps)(injectIntl(StatusContent));

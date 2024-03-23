@@ -10,9 +10,8 @@ import { connect } from 'react-redux';
 
 import { debounce } from 'lodash';
 
-import PersonAddIcon from '@/material-icons/400-24px/person_add.svg?react';
-
 import { fetchFollowRequests, expandFollowRequests } from '../../actions/accounts';
+import ColumnBackButtonSlim from '../../components/column_back_button_slim';
 import ScrollableList from '../../components/scrollable_list';
 import { me } from '../../initial_state';
 import Column from '../ui/components/column';
@@ -68,7 +67,8 @@ class FollowRequests extends ImmutablePureComponent {
     );
 
     return (
-      <Column bindToDocument={!multiColumn} icon='user-plus' iconComponent={PersonAddIcon} heading={intl.formatMessage(messages.heading)}>
+      <Column bindToDocument={!multiColumn} icon='user-plus' heading={intl.formatMessage(messages.heading)}>
+        <ColumnBackButtonSlim />
         <ScrollableList
           scrollKey='follow_requests'
           onLoadMore={this.handleLoadMore}

@@ -7,8 +7,6 @@ import * as perf from 'mastodon/performance';
 import ready from 'mastodon/ready';
 import { store } from 'mastodon/store';
 
-import { isProduction } from './utils/environment';
-
 /**
  * @returns {Promise<void>}
  */
@@ -23,7 +21,7 @@ function main() {
     root.render(<Mastodon {...props} />);
     store.dispatch(setupBrowserNotifications());
 
-    if (isProduction() && me && 'serviceWorker' in navigator) {
+    if (process.env.NODE_ENV === 'production' && me && 'serviceWorker' in navigator) {
       const { Workbox } = await import('workbox-window');
       const wb = new Workbox('/sw.js');
       /** @type {ServiceWorkerRegistration} */

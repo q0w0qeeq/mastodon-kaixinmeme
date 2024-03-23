@@ -71,22 +71,24 @@ describe Settings::MigrationsController do
       context 'when acct is the current account' do
         let(:acct) { user.account }
 
-        it 'does not update the moved account', :aggregate_failures do
-          subject
+        it 'renders show' do
+          expect(subject).to render_template :show
+        end
 
+        it 'does not update the moved account' do
           expect(user.account.reload.moved_to_account_id).to be_nil
-          expect(response).to render_template :show
         end
       end
 
       context 'when target account does not reference the account being moved from' do
         let(:acct) { Fabricate(:account, also_known_as: []) }
 
-        it 'does not update the moved account', :aggregate_failures do
-          subject
+        it 'renders show' do
+          expect(subject).to render_template :show
+        end
 
+        it 'does not update the moved account' do
           expect(user.account.reload.moved_to_account_id).to be_nil
-          expect(response).to render_template :show
         end
       end
 
@@ -98,11 +100,12 @@ describe Settings::MigrationsController do
           user.account.migrations.create!(acct: moved_to.acct)
         end
 
-        it 'does not update the moved account', :aggregate_failures do
-          subject
+        it 'renders show' do
+          expect(subject).to render_template :show
+        end
 
+        it 'does not update the moved account' do
           expect(user.account.reload.moved_to_account_id).to be_nil
-          expect(response).to render_template :show
         end
       end
     end

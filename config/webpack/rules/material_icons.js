@@ -1,13 +1,12 @@
 module.exports = {
   test: /\.svg$/,
-  include: [/material-icons/, /svg-icons/],
+  include: /node_modules\/@material-design-icons/,
   issuer: /\.[jt]sx?$/,
   use: [
     {
       loader: '@svgr/webpack',
       options: {
         svgo: false,
-        titleProp: true,
       },
     },
   ],

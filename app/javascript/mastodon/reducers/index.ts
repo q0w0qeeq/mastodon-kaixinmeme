@@ -3,17 +3,19 @@ import { Record as ImmutableRecord } from 'immutable';
 import { loadingBarReducer } from 'react-redux-loading-bar';
 import { combineReducers } from 'redux-immutable';
 
-import { accountsReducer } from './accounts';
+import accounts from './accounts';
+import accounts_counters from './accounts_counters';
 import accounts_map from './accounts_map';
 import alerts from './alerts';
 import announcements from './announcements';
+import blocks from './blocks';
 import boosts from './boosts';
 import compose from './compose';
 import contexts from './contexts';
 import conversations from './conversations';
 import custom_emojis from './custom_emojis';
 import domain_lists from './domain_lists';
-import { dropdownMenuReducer } from './dropdown_menu';
+import dropdown_menu from './dropdown_menu';
 import filters from './filters';
 import followed_tags from './followed_tags';
 import height_cache from './height_cache';
@@ -25,13 +27,12 @@ import markers from './markers';
 import media_attachments from './media_attachments';
 import meta from './meta';
 import { modalReducer } from './modal';
-import { notificationPolicyReducer } from './notification_policy';
-import { notificationRequestsReducer } from './notification_requests';
+import mutes from './mutes';
 import notifications from './notifications';
 import picture_in_picture from './picture_in_picture';
 import polls from './polls';
 import push_notifications from './push_notifications';
-import { relationshipsReducer } from './relationships';
+import relationships from './relationships';
 import search from './search';
 import server from './server';
 import settings from './settings';
@@ -45,7 +46,7 @@ import user_lists from './user_lists';
 
 const reducers = {
   announcements,
-  dropdownMenu: dropdownMenuReducer,
+  dropdown_menu,
   timelines,
   meta,
   alerts,
@@ -54,12 +55,15 @@ const reducers = {
   user_lists,
   domain_lists,
   status_lists,
-  accounts: accountsReducer,
+  accounts,
+  accounts_counters,
   accounts_map,
   statuses,
-  relationships: relationshipsReducer,
+  relationships,
   settings,
   push_notifications,
+  mutes,
+  blocks,
   boosts,
   server,
   contexts,
@@ -82,8 +86,6 @@ const reducers = {
   history,
   tags,
   followed_tags,
-  notificationPolicy: notificationPolicyReducer,
-  notificationRequests: notificationRequestsReducer,
 };
 
 // We want the root state to be an ImmutableRecord, which is an object with a defined list of keys,

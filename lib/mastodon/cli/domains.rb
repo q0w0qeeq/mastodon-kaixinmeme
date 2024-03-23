@@ -41,9 +41,11 @@ module Mastodon::CLI
 
       # Sanity check on command arguments
       if options[:limited_federation_mode] && !domains.empty?
-        fail_with_message 'DOMAIN parameter not supported with --limited-federation-mode'
+        say('DOMAIN parameter not supported with --limited-federation-mode', :red)
+        exit(1)
       elsif domains.empty? && !options[:limited_federation_mode]
-        fail_with_message 'No domain(s) given'
+        say('No domain(s) given', :red)
+        exit(1)
       end
 
       # Build scopes from command arguments
@@ -95,8 +97,6 @@ module Mastodon::CLI
       say("Removed #{custom_emojis_count} custom emojis#{dry_run_mode_suffix}", :green)
     end
 
-    CRAWL_SLEEP_TIME = 20
-
     option :concurrency, type: :numeric, default: 50, aliases: [:c]
     option :format, type: :string, default: 'summary', aliases: [:f]
     option :exclude_suspended, type: :boolean, default: false, aliases: [:x]
@@ -125,7 +125,7 @@ module Mastodon::CLI
       failed          = Concurrent::AtomicFixnum.new(0)
       start_at        = Time.now.to_f
       seed            = start ? [start] : Instance.pluck(:domain)
-      blocked_domains = /\.?(#{Regexp.union(domain_block_suspended_domains).source})$/
+      blocked_domains = /\.?(#{DomainBlock.where(severity: 1).pluck(:domain).map { |domain| Regexp.escape(domain) }.join('|')})$/
       progress        = create_progress_bar
 
       pool = Concurrent::ThreadPoolExecutor.new(min_threads: 0, max_threads: options[:concurrency], idletime: 10, auto_terminate: true, max_queue: 0)
@@ -168,8 +168,8 @@ module Mastodon::CLI
         pool.post(domain, &work_unit)
       end
 
-      sleep CRAWL_SLEEP_TIME
-      sleep CRAWL_SLEEP_TIME until pool.queue_length.zero?
+      sleep 20
+      sleep 20 until pool.queue_length.zero?
 
       pool.shutdown
       pool.wait_for_termination(20)
@@ -188,10 +188,6 @@ module Mastodon::CLI
     end
 
     private
-
-    def domain_block_suspended_domains
-      DomainBlock.suspend.pluck(:domain)
-    end
 
     def stats_to_summary(stats, processed, failed, start_at)
       stats.compact!

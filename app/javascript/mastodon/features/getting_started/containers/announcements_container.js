@@ -1,7 +1,6 @@
-import { createSelector } from '@reduxjs/toolkit';
 import { Map as ImmutableMap } from 'immutable';
 import { connect } from 'react-redux';
-
+import { createSelector } from 'reselect';
 
 import { addReaction, removeReaction, dismissAnnouncement } from 'mastodon/actions/announcements';
 

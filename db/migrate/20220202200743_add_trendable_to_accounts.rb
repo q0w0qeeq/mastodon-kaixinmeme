@@ -2,12 +2,8 @@
 
 class AddTrendableToAccounts < ActiveRecord::Migration[6.1]
   def change
-    safety_assured do
-      change_table(:accounts, bulk: true) do |t|
-        t.column :trendable, :boolean
-        t.column :reviewed_at, :datetime
-        t.column :requested_review_at, :datetime
-      end
-    end
+    add_column :accounts, :trendable, :boolean
+    add_column :accounts, :reviewed_at, :datetime
+    add_column :accounts, :requested_review_at, :datetime
   end
 end

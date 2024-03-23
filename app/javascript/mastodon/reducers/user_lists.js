@@ -33,8 +33,8 @@ import {
   FOLLOW_REQUESTS_EXPAND_REQUEST,
   FOLLOW_REQUESTS_EXPAND_SUCCESS,
   FOLLOW_REQUESTS_EXPAND_FAIL,
-  authorizeFollowRequestSuccess,
-  rejectFollowRequestSuccess,
+  FOLLOW_REQUEST_AUTHORIZE_SUCCESS,
+  FOLLOW_REQUEST_REJECT_SUCCESS,
 } from '../actions/accounts';
 import {
   BLOCKS_FETCH_REQUEST,
@@ -66,7 +66,11 @@ import {
   MUTES_EXPAND_SUCCESS,
   MUTES_EXPAND_FAIL,
 } from '../actions/mutes';
-import { notificationsUpdate } from '../actions/notifications';
+import {
+  NOTIFICATIONS_UPDATE,
+} from '../actions/notifications';
+
+
 
 const initialListState = ImmutableMap({
   next: null,
@@ -159,8 +163,8 @@ export default function userLists(state = initialState, action) {
   case FAVOURITES_FETCH_FAIL:
   case FAVOURITES_EXPAND_FAIL:
     return state.setIn(['favourited_by', action.id, 'isLoading'], false);
-  case notificationsUpdate.type:
-    return action.payload.notification.type === 'follow_request' ? normalizeFollowRequest(state, action.payload.notification) : state;
+  case NOTIFICATIONS_UPDATE:
+    return action.notification.type === 'follow_request' ? normalizeFollowRequest(state, action.notification) : state;
   case FOLLOW_REQUESTS_FETCH_SUCCESS:
     return normalizeList(state, ['follow_requests'], action.accounts, action.next);
   case FOLLOW_REQUESTS_EXPAND_SUCCESS:
@@ -171,9 +175,9 @@ export default function userLists(state = initialState, action) {
   case FOLLOW_REQUESTS_FETCH_FAIL:
   case FOLLOW_REQUESTS_EXPAND_FAIL:
     return state.setIn(['follow_requests', 'isLoading'], false);
-  case authorizeFollowRequestSuccess.type:
-  case rejectFollowRequestSuccess.type:
-    return state.updateIn(['follow_requests', 'items'], list => list.filterNot(item => item === action.payload.id));
+  case FOLLOW_REQUEST_AUTHORIZE_SUCCESS:
+  case FOLLOW_REQUEST_REJECT_SUCCESS:
+    return state.updateIn(['follow_requests', 'items'], list => list.filterNot(item => item === action.id));
   case BLOCKS_FETCH_SUCCESS:
     return normalizeList(state, ['blocks'], action.accounts, action.next);
   case BLOCKS_EXPAND_SUCCESS:

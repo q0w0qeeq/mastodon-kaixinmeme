@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-describe 'NewStatuses', :sidekiq_inline do
+describe 'NewStatuses' do
   include ProfileStories
 
   subject { page }
@@ -24,10 +24,10 @@ describe 'NewStatuses', :sidekiq_inline do
 
     within('.compose-form') do
       fill_in "What's on your mind?", with: status_text
-      click_on 'Post'
+      click_on 'Publish!'
     end
 
-    expect(subject).to have_css('.status__content__text', text: status_text)
+    expect(subject).to have_selector('.status__content__text', text: status_text)
   end
 
   it 'can be posted again' do
@@ -37,9 +37,9 @@ describe 'NewStatuses', :sidekiq_inline do
 
     within('.compose-form') do
       fill_in "What's on your mind?", with: status_text
-      click_on 'Post'
+      click_on 'Publish!'
     end
 
-    expect(subject).to have_css('.status__content__text', text: status_text)
+    expect(subject).to have_selector('.status__content__text', text: status_text)
   end
 end

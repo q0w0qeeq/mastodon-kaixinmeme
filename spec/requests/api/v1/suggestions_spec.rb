@@ -13,12 +13,13 @@ RSpec.describe 'Suggestions' do
       get '/api/v1/suggestions', headers: headers, params: params
     end
 
-    let(:bob) { Fabricate(:account) }
-    let(:jeff) { Fabricate(:account) }
+    let(:bob)    { Fabricate(:account) }
+    let(:jeff)   { Fabricate(:account) }
     let(:params) { {} }
 
     before do
-      Setting.bootstrap_timeline_accounts = [bob, jeff].map(&:acct).join(',')
+      PotentialFriendshipTracker.record(user.account_id, bob.id, :reblog)
+      PotentialFriendshipTracker.record(user.account_id, jeff.id, :favourite)
     end
 
     it_behaves_like 'forbidden for wrong scope', 'write'
@@ -64,15 +65,17 @@ RSpec.describe 'Suggestions' do
       delete "/api/v1/suggestions/#{jeff.id}", headers: headers
     end
 
-    let(:bob) { Fabricate(:account) }
-    let(:jeff) { Fabricate(:account) }
-    let(:scopes) { 'write' }
+    let(:suggestions_source) { instance_double(AccountSuggestions::PastInteractionsSource, remove: nil) }
+    let(:bob)                { Fabricate(:account) }
+    let(:jeff)               { Fabricate(:account) }
 
     before do
-      Setting.bootstrap_timeline_accounts = [bob, jeff].map(&:acct).join(',')
+      PotentialFriendshipTracker.record(user.account_id, bob.id, :reblog)
+      PotentialFriendshipTracker.record(user.account_id, jeff.id, :favourite)
+      allow(AccountSuggestions::PastInteractionsSource).to receive(:new).and_return(suggestions_source)
     end
 
-    it_behaves_like 'forbidden for wrong scope', 'read'
+    it_behaves_like 'forbidden for wrong scope', 'write'
 
     it 'returns http success' do
       subject
@@ -83,7 +86,8 @@ RSpec.describe 'Suggestions' do
     it 'removes the specified suggestion' do
       subject
 
-      expect(FollowRecommendationMute.exists?(account: user.account, target_account: jeff)).to be true
+      expect(suggestions_source).to have_received(:remove).with(user.account, jeff.id.to_s).once
+      expect(suggestions_source).to_not have_received(:remove).with(user.account, bob.id.to_s)
     end
 
     context 'without an authorization header' do

@@ -16,7 +16,7 @@ module Admin
         @moderation_notes = @account.targeted_moderation_notes.latest
         @warnings         = @account.strikes.custom.latest
 
-        render 'admin/accounts/show'
+        render template: 'admin/accounts/show'
       end
     end
 

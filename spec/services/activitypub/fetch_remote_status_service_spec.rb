@@ -2,12 +2,13 @@
 
 require 'rails_helper'
 
-RSpec.describe ActivityPub::FetchRemoteStatusService do
+RSpec.describe ActivityPub::FetchRemoteStatusService, type: :service do
   include ActionView::Helpers::TextHelper
 
   subject { described_class.new }
 
   let!(:sender) { Fabricate(:account, domain: 'foo.bar', uri: 'https://foo.bar') }
+  let!(:recipient) { Fabricate(:account) }
 
   let(:existing_status) { nil }
 
@@ -225,7 +226,7 @@ RSpec.describe ActivityPub::FetchRemoteStatusService do
     end
   end
 
-  context 'with statuses referencing other statuses', :sidekiq_inline do
+  context 'with statuses referencing other statuses' do
     before do
       stub_const 'ActivityPub::FetchRemoteStatusService::DISCOVERIES_PER_REQUEST', 5
     end

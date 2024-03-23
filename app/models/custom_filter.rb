@@ -31,7 +31,7 @@ class CustomFilter < ApplicationRecord
   include Expireable
   include Redisable
 
-  enum :action, { warn: 0, hide: 1 }, suffix: :action
+  enum action: { warn: 0, hide: 1 }, _suffix: :action
 
   belongs_to :account
   has_many :keywords, class_name: 'CustomFilterKeyword', inverse_of: :custom_filter, dependent: :destroy
@@ -41,7 +41,7 @@ class CustomFilter < ApplicationRecord
   validates :title, :context, presence: true
   validate :context_must_be_valid
 
-  normalizes :context, with: ->(context) { context.map(&:strip).filter_map(&:presence) }
+  before_validation :clean_up_contexts
 
   before_save :prepare_cache_invalidation!
   before_destroy :prepare_cache_invalidation!
@@ -68,7 +68,16 @@ class CustomFilter < ApplicationRecord
 
       scope = CustomFilterKeyword.includes(:custom_filter).where(custom_filter: { account_id: account_id }).where(Arel.sql('expires_at IS NULL OR expires_at > NOW()'))
       scope.to_a.group_by(&:custom_filter).each do |filter, keywords|
-        keywords.map!(&:to_regex)
+        keywords.map! do |keyword|
+          if keyword.whole_word
+            sb = /\A[[:word:]]/.match?(keyword.keyword) ? '\b' : ''
+            eb = /[[:word:]]\z/.match?(keyword.keyword) ? '\b' : ''
+
+            /(?mix:#{sb}#{Regexp.escape(keyword.keyword)}#{eb})/
+          else
+            /#{Regexp.escape(keyword.keyword)}/i
+          end
+        end
 
         filters_hash[filter.id] = { keywords: Regexp.union(keywords), filter: filter }
       end.to_h
@@ -82,7 +91,7 @@ class CustomFilter < ApplicationRecord
       filters_hash.values.map { |cache| [cache.delete(:filter), cache] }
     end.to_a
 
-    active_filters.reject { |custom_filter, _| custom_filter.expired? }
+    active_filters.select { |custom_filter, _| !custom_filter.expired? }
   end
 
   def self.apply_cached_filters(cached_filters, status)
@@ -114,11 +123,11 @@ class CustomFilter < ApplicationRecord
 
   private
 
-  def context_must_be_valid
-    errors.add(:context, I18n.t('filters.errors.invalid_context')) if invalid_context_value?
+  def clean_up_contexts
+    self.context = Array(context).map(&:strip).filter_map(&:presence)
   end
 
-  def invalid_context_value?
-    context.blank? || context.difference(VALID_CONTEXTS).any?
+  def context_must_be_valid
+    errors.add(:context, I18n.t('filters.errors.invalid_context')) if context.empty? || context.any? { |c| !VALID_CONTEXTS.include?(c) }
   end
 end
