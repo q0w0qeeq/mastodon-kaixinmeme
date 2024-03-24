@@ -23,7 +23,7 @@ class AccountsIndex < Chewy::Index
 
     analyzer: {
       natural: {
-        tokenizer: 'standard',
+        tokenizer: 'ik_max_word',
         filter: %w(
           lowercase
           asciifolding
@@ -41,7 +41,7 @@ class AccountsIndex < Chewy::Index
       },
 
       edge_ngram: {
-        tokenizer: 'edge_ngram',
+        tokenizer: 'standard',
         filter: %w(lowercase asciifolding cjk_width),
       },
     },
