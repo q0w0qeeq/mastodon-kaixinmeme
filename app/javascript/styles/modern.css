@@ -1,5 +1,3 @@
-@import 'mastodon-light/diff';
-@import 'contrast/diff';
 :root {
     --tl-width: 750px;
     --radius: 12px;
