@@ -1,5 +1,5 @@
 default: styles/application.scss
 contrast: styles/contrast.scss
 mastodon-light: styles/mastodon-light.scss
-巫师小镇: styles/witches-town.scss
+witches-town: styles/witches-town.scss
 Modern: styles/modern.scss
