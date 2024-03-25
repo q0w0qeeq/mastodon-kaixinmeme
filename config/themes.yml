@@ -4,9 +4,6 @@ mastodon-light: styles/mastodon-light.scss
 Modern-contrast: styles/modern-contrast.scss
 Modern-dark: styles/modern-dark.scss
 Modern-light: styles/modern-light.scss
-default: styles/application-pink.scss
-contrast: styles/contrast-pink.scss
-mastodon-light: styles/mastodon-light-pink.scss
 Modern-contrast-pink: styles/modern-contrast-pink.scss
 Modern-dark-pink: styles/modern-dark-pink.scss
 Modern-light-pink: styles/modern-light-pink.scss

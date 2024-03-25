@@ -1701,9 +1701,6 @@ zh-CN:
     contrast: Mastodon（高对比度）
     default: Mastodon（暗色主题）
     mastodon-light: Mastodon（亮色主题）
-    contrast-pink: Mastodon（高对比度）粉色
-    default-pink: Mastodon（暗色主题）粉色
-    mastodon-light-pink: Mastodon（亮色主题）粉色
     Modern-contrast: 现代-高对比度
     Modern-dark: 现代-暗色
     Modern-light: 现代-亮色
