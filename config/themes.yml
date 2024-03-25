@@ -2,4 +2,4 @@ default: styles/application.scss
 contrast: styles/contrast.scss
 mastodon-light: styles/mastodon-light.scss
 witches-town: styles/witches-town.scss
-Modern: styles/modern.scss
+Modern: styles/modern.css
