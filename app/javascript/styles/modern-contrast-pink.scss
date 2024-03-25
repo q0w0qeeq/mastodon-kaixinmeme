@@ -1,0 +1,9 @@
+@import 'contrast-pink/variables';
+@import 'application';
+@import 'modern/style';
+@import 'contrast-pink/diff';
+
+.layout-multiple-columns .column {
+	flex-grow: 1;
+	max-width: 500px;
+}

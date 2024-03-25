@@ -1,0 +1,58 @@
+// Dependent colors
+$black: #000000;
+$white: #ffffff;
+
+$classic-base-color: #372828; // Midnight Express
+$classic-primary-color: #e3b4b8; // Echo Blue
+$classic-secondary-color: #d9e1e8; // Pattens Blue
+$classic-highlight-color: #ee3f4d; // Brand purple
+
+$blurple-600: #ee3f4d; // Iris
+$blurple-500: #ea7293; // Brand purple
+$blurple-400: #de7897; // Medium slate blue
+$blurple-300: #ed9db2; // Faded Blue
+$grey-600: #5a4c4c; // Trout
+$grey-100: #f3dada; // Topaz
+
+// Differences
+$success-green: #5e7987 !default; // Padua
+
+$base-overlay-background: $white !default;
+$valid-value-color: $success-green !default;
+
+$ui-base-color: $classic-secondary-color !default;
+$ui-base-lighter-color: #cfb0b0;
+$ui-primary-color: #ed9b9b;
+$ui-secondary-color: $classic-base-color !default;
+$ui-highlight-color: $classic-highlight-color !default;
+
+$ui-button-secondary-color: $grey-600 !default;
+$ui-button-secondary-border-color: $grey-600 !default;
+$ui-button-secondary-focus-color: $white !default;
+
+$ui-button-tertiary-color: $blurple-500 !default;
+$ui-button-tertiary-border-color: $blurple-500 !default;
+
+$primary-text-color: $black !default;
+$darker-text-color: $classic-base-color !default;
+$highlight-text-color: darken($ui-highlight-color, 8%) !default;
+$dark-text-color: #444b5d;
+$action-button-color: #846060;
+
+$inverted-text-color: $black !default;
+$lighter-text-color: $classic-base-color !default;
+$light-text-color: #5d4444;
+
+// Newly added colors
+$account-background-color: $white !default;
+
+// Invert darkened and lightened colors
+@function darken($color, $amount) {
+  @return hsl(hue($color), saturation($color), lightness($color) + $amount);
+}
+
+@function lighten($color, $amount) {
+  @return hsl(hue($color), saturation($color), lightness($color) - $amount);
+}
+
+$emojis-requiring-inversion: 'chains';
