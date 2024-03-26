@@ -251,26 +251,9 @@ module.exports = {
             group: 'internal',
             position: 'after',
           },
-          {
-            pattern: '{flavours/glitch-soc/**}',
-            group: 'internal',
-            position: 'after',
-          },
         ],
         pathGroupsExcludedImportTypes: [],
       },
-    ],
-
-    // Forbid imports from vanilla in glitch flavour
-    'import/no-restricted-paths': [
-      'error',
-      {
-        zones: [{
-          target: 'app/javascript/flavours/glitch/',
-          from: 'app/javascript/mastodon/',
-          message: 'Import from /flavours/glitch/ instead'
-        }]
-      }
     ],
 
     'promise/always-return': 'off',

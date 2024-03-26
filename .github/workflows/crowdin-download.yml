@@ -11,7 +11,6 @@ permissions:
 jobs:
   download-translations:
     runs-on: ubuntu-latest
-    if: github.repository == 'glitch-soc/mastodon'
 
     steps:
       - name: Checkout
@@ -28,7 +27,6 @@ jobs:
       - name: crowdin action
         uses: crowdin/github-action@v1
         with:
-          config: crowdin-glitch.yml
           upload_sources: false
           upload_translations: false
           download_translations: true
@@ -45,15 +43,21 @@ jobs:
         run: sudo chown -R runner:docker .
 
       # This is needed to run the normalize step
-      - name: Set up Ruby environment
-        uses: ./.github/actions/setup-ruby
+      - name: Install native Ruby dependencies
+        run: sudo apt-get install -y libicu-dev libidn11-dev
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
 
       - name: Run i18n normalize task
         run: bundle exec i18n-tasks normalize
 
       # Create or update the pull request
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v6.0.2
+        uses: peter-evans/create-pull-request@v5.0.2
         with:
           commit-message: 'New Crowdin translations'
           title: 'New Crowdin Translations (automated)'

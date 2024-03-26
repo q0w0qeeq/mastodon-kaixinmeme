@@ -1,0 +1,9 @@
+default: styles/application.scss
+contrast: styles/contrast.scss
+mastodon-light: styles/mastodon-light.scss
+Modern-contrast: styles/modern-contrast.scss
+Modern-dark: styles/modern-dark.scss
+Modern-light: styles/modern-light.scss
+Modern-contrast-pink: styles/modern-contrast-pink.scss
+Modern-dark-pink: styles/modern-dark-pink.scss
+Modern-light-pink: styles/modern-light-pink.scss

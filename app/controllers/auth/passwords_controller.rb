@@ -1,9 +1,7 @@
 # frozen_string_literal: true
 
 class Auth::PasswordsController < Devise::PasswordsController
-  skip_before_action :check_self_destruct!
-  before_action :redirect_invalid_reset_token, only: :edit, unless: :reset_password_token_is_valid?
-  before_action :set_pack
+  before_action :check_validity_of_reset_password_token, only: :edit
   before_action :set_body_classes
 
   layout 'auth'
@@ -20,9 +18,11 @@ class Auth::PasswordsController < Devise::PasswordsController
 
   private
 
-  def redirect_invalid_reset_token
-    flash[:error] = I18n.t('auth.invalid_reset_password_token')
-    redirect_to new_password_path(resource_name)
+  def check_validity_of_reset_password_token
+    unless reset_password_token_is_valid?
+      flash[:error] = I18n.t('auth.invalid_reset_password_token')
+      redirect_to new_password_path(resource_name)
+    end
   end
 
   def set_body_classes
@@ -31,9 +31,5 @@ class Auth::PasswordsController < Devise::PasswordsController
 
   def reset_password_token_is_valid?
     resource_class.with_reset_password_token(params[:reset_password_token]).present?
-  end
-
-  def set_pack
-    use_pack 'auth'
   end
 end

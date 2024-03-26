@@ -58,8 +58,6 @@ namespace :settings do
     end
   end
 
-  resources :flavours, only: [:index, :show, :update], param: :flavour
-
   resource :delete, only: [:show, :destroy]
   resource :migration, only: [:show, :create]
   resource :verification, only: :show

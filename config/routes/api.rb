@@ -37,7 +37,6 @@ namespace :api, format: false do
     end
 
     namespace :timelines do
-      resource :direct, only: :show, controller: :direct
       resource :home, only: :show, controller: :home
       resource :public, only: :show, controller: :public
       resources :tag, only: :show
@@ -51,12 +50,6 @@ namespace :api, format: false do
     resources :suggestions, only: [:index, :destroy]
     resources :scheduled_statuses, only: [:index, :show, :update, :destroy]
     resources :preferences, only: [:index]
-
-    resources :annual_reports, only: [:index] do
-      member do
-        post :read
-      end
-    end
 
     resources :announcements, only: [:index] do
       scope module: :announcements do
@@ -126,16 +119,14 @@ namespace :api, format: false do
     end
 
     resource :instance, only: [:show] do
-      scope module: :instances do
-        resources :peers, only: [:index]
-        resources :rules, only: [:index]
-        resources :domain_blocks, only: [:index]
-        resource :privacy_policy, only: [:show]
-        resource :extended_description, only: [:show]
-        resource :translation_languages, only: [:show]
-        resource :languages, only: [:show]
-        resource :activity, only: [:show], controller: :activity
-      end
+      resources :peers, only: [:index], controller: 'instances/peers'
+      resources :rules, only: [:index], controller: 'instances/rules'
+      resources :domain_blocks, only: [:index], controller: 'instances/domain_blocks'
+      resource :privacy_policy, only: [:show], controller: 'instances/privacy_policies'
+      resource :extended_description, only: [:show], controller: 'instances/extended_descriptions'
+      resource :translation_languages, only: [:show], controller: 'instances/translation_languages'
+      resource :languages, only: [:show], controller: 'instances/languages'
+      resource :activity, only: [:show], controller: 'instances/activity'
     end
 
     namespace :peers do
@@ -153,21 +144,9 @@ namespace :api, format: false do
       end
     end
 
-    namespace :notifications do
-      resources :requests, only: [:index, :show] do
-        member do
-          post :accept
-          post :dismiss
-        end
-      end
-
-      resource :policy, only: [:show, :update]
-    end
-
-    resources :notifications, only: [:index, :show, :destroy] do
+    resources :notifications, only: [:index, :show] do
       collection do
         post :clear
-        delete :destroy_multiple
       end
 
       member do
@@ -185,14 +164,12 @@ namespace :api, format: false do
     end
 
     resources :accounts, only: [:create, :show] do
-      scope module: :accounts do
-        resources :statuses, only: :index
-        resources :followers, only: :index, controller: :follower_accounts
-        resources :following, only: :index, controller: :following_accounts
-        resources :lists, only: :index
-        resources :identity_proofs, only: :index
-        resources :featured_tags, only: :index
-      end
+      resources :statuses, only: :index, controller: 'accounts/statuses'
+      resources :followers, only: :index, controller: 'accounts/follower_accounts'
+      resources :following, only: :index, controller: 'accounts/following_accounts'
+      resources :lists, only: :index, controller: 'accounts/lists'
+      resources :identity_proofs, only: :index, controller: 'accounts/identity_proofs'
+      resources :featured_tags, only: :index, controller: 'accounts/featured_tags'
 
       member do
         post :follow

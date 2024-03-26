@@ -240,9 +240,7 @@ export function submitCompose(routerHistory) {
 
       if (statusId === null && response.data.in_reply_to_id === null && response.data.visibility === 'public') {
         insertIfOnline('community');
-        if (!response.data.local_only) {
-          insertIfOnline('public');
-        }
+        insertIfOnline('public');
         insertIfOnline(`account:${response.data.account.id}`);
       }
 
