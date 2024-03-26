@@ -20,7 +20,7 @@ $red-bookmark: $warning-red;
 // Values from the classic Mastodon UI
 $classic-base-color: #1e1e1e; // Midnight Express
 $classic-primary-color: #e3b4b8; // Echo Blue
-$classic-secondary-color: #d9e1e8; // Pattens Blue
+$classic-secondary-color: #e8d9d9; // Pattens Blue
 $classic-highlight-color: #c95e67; // Brand purple
 
 // Variables for defaults in UI
@@ -60,7 +60,7 @@ $ui-button-destructive-background-color: $red-500 !default;
 $ui-button-destructive-focus-background-color: $red-600 !default;
 
 $ui-button-icon-focus-outline: $ui-button-focus-outline !default;
-$ui-button-icon-hover-background-color: rgba(246, 129, 129, 0.664) !default;
+$ui-button-icon-hover-background-color: rgba(255, 159, 159, 0.733) !default;
 
 // Variables for texts
 $primary-text-color: $white !default;
