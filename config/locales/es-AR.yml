@@ -1037,7 +1037,7 @@ es-AR:
     apply_for_account: Solicitar una cuenta
     captcha_confirmation:
       help_html: Si tenés problemas resolviendo la CAPTCHA, podés ponerte en contacto con nosotros a través de %{email} y te vamos a ayudar.
-      hint_html: ¡Solo una cosa más! Necesitamos confirmar que sos humano (¡esto es para que podamos mantener el spam fuera!). Resolvé la CAPTCHA abajo y hacé clic en "Continuar".
+      hint_html: ¡Sólo una cosa más! Necesitamos confirmar que sos humano (¡esto es para que podamos mantener el spam fuera!). Resuelvé la CAPTCHA abajo y hacé clic en "Continuar".
       title: Comprobación de seguridad
     confirmations:
       wrong_email_hint: Si esa dirección de correo electrónico no es correcta, podés cambiarla en la configuración de la cuenta.

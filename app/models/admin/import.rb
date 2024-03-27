@@ -30,14 +30,12 @@ class Admin::Import
 
     csv_converter = lambda do |field, field_info|
       case field_info.header
-      when '#domain'
-        field&.downcase&.strip
-      when '#public_comment'
+      when '#domain', '#public_comment'
         field&.strip
       when '#severity'
-        field&.downcase&.strip&.to_sym
+        field&.strip&.to_sym
       when '#reject_media', '#reject_reports', '#obfuscate'
-        ActiveModel::Type::Boolean.new.cast(field&.downcase)
+        ActiveModel::Type::Boolean.new.cast(field)
       else
         field
       end
