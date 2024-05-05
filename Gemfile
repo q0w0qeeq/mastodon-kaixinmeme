@@ -12,7 +12,7 @@ gem 'thor', '~> 1.2'
 # For why irb is in the Gemfile, see: https://ruby.social/@st0012/111444685161478182
 gem 'irb', '~> 1.8'
 
-gem 'dotenv-rails', '~> 2.8'
+gem 'dotenv'
 gem 'haml-rails', '~>2.0'
 gem 'pg', '~> 1.5'
 gem 'pghero'
@@ -31,7 +31,7 @@ gem 'browser'
 gem 'charlock_holmes', '~> 0.7.7'
 gem 'chewy', '~> 7.3'
 gem 'devise', '~> 4.9'
-gem 'devise-two-factor', '~> 4.1'
+gem 'devise-two-factor'
 
 group :pam_authentication, optional: true do
   gem 'devise_pam_authenticatable2', '~> 9.2'
@@ -54,7 +54,7 @@ gem 'fast_blank', '~> 1.0'
 gem 'fastimage'
 gem 'hiredis', '~> 0.6'
 gem 'htmlentities', '~> 4.3'
-gem 'http', '~> 5.1'
+gem 'http', '~> 5.2.0'
 gem 'http_accept_language', '~> 2.1'
 gem 'httplog', '~> 1.6.2'
 gem 'i18n', '1.14.1' # TODO: Remove version when resolved: https://github.com/glebm/i18n-tasks/issues/552 / https://github.com/ruby-i18n/i18n/pull/688
