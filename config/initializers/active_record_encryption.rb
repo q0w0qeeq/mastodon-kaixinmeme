@@ -5,6 +5,11 @@
   ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT
   ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY
 ).each do |key|
+  if ENV['SECRET_KEY_BASE_DUMMY']
+    # Use placeholder value during production env asset compilation
+    ENV[key] = SecureRandom.hex(64)
+  end
+
   value = ENV.fetch(key) do
     abort <<~MESSAGE
 
@@ -32,4 +37,5 @@ Rails.application.configure do
   config.active_record.encryption.deterministic_key = ENV.fetch('ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY')
   config.active_record.encryption.key_derivation_salt = ENV.fetch('ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT')
   config.active_record.encryption.primary_key = ENV.fetch('ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY')
+  config.active_record.encryption.support_sha1_for_non_deterministic_encryption = true
 end

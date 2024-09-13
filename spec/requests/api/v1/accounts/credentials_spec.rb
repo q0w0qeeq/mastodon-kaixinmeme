@@ -20,7 +20,7 @@ RSpec.describe 'credentials API' do
 
       expect(response)
         .to have_http_status(200)
-      expect(body_as_json).to include({
+      expect(response.parsed_body).to include({
         source: hash_including({
           discoverable: false,
           indexable: false,
@@ -29,15 +29,15 @@ RSpec.describe 'credentials API' do
       })
     end
 
-    describe 'allows the read:me scope' do
-      let(:scopes) { 'read:me' }
+    describe 'allows the profile scope' do
+      let(:scopes) { 'profile' }
 
       it 'returns the response successfully' do
         subject
 
         expect(response).to have_http_status(200)
 
-        expect(body_as_json).to include({
+        expect(response.parsed_body).to include({
           locked: true,
         })
       end
@@ -93,7 +93,7 @@ RSpec.describe 'credentials API' do
       expect(response)
         .to have_http_status(200)
 
-      expect(body_as_json).to include({
+      expect(response.parsed_body).to include({
         source: hash_including({
           discoverable: true,
           indexable: true,

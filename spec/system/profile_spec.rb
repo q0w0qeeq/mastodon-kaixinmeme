@@ -2,12 +2,12 @@
 
 require 'rails_helper'
 
-describe 'Profile' do
+RSpec.describe 'Profile' do
   include ProfileStories
 
   subject { page }
 
-  let(:local_domain) { ENV['LOCAL_DOMAIN'] }
+  let(:local_domain) { Rails.configuration.x.local_domain }
 
   before do
     as_a_logged_in_user

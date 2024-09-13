@@ -39,7 +39,7 @@ class CustomEmoji < ApplicationRecord
 
   has_one :local_counterpart, -> { where(domain: nil) }, class_name: 'CustomEmoji', primary_key: :shortcode, foreign_key: :shortcode, inverse_of: false, dependent: nil
 
-  has_attached_file :image, styles: { static: { format: 'png', convert_options: '-coalesce +profile "!icc,*" +set date:modify +set date:create +set date:timestamp' } }, validate_media_type: false
+  has_attached_file :image, styles: { static: { format: 'png', convert_options: '-coalesce +profile "!icc,*" +set date:modify +set date:create +set date:timestamp', file_geometry_parser: FastGeometryParser } }, validate_media_type: false, processors: [:lazy_thumbnail]
 
   normalizes :domain, with: ->(domain) { domain.downcase }
 
@@ -48,9 +48,10 @@ class CustomEmoji < ApplicationRecord
 
   scope :local, -> { where(domain: nil) }
   scope :remote, -> { where.not(domain: nil) }
+  scope :enabled, -> { where(disabled: false) }
   scope :alphabetic, -> { order(domain: :asc, shortcode: :asc) }
   scope :by_domain_and_subdomains, ->(domain) { where(domain: domain).or(where(arel_table[:domain].matches("%.#{domain}"))) }
-  scope :listed, -> { local.where(disabled: false).where(visible_in_picker: true) }
+  scope :listed, -> { local.enabled.where(visible_in_picker: true) }
 
   remotable_attachment :image, LIMIT
 
